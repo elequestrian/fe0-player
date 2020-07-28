@@ -5,7 +5,7 @@ A code base for playing the FE Cipher card game.
 Fire Emblem Cipher: Player
 Alpha prototype v1.00
 Released May 26, 2020
-Available under 
+Available under MIT License
 © 2020 Theron Calkins
 
 Release Notes:
