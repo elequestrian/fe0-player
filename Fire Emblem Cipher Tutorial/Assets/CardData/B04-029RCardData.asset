@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ab9f210baa9036846bc27ce66fae4693, type: 3}
+  m_Name: B04-029RCardData
+  m_EditorClassIdentifier: 
+  cardNumber: B04-029R
+  charTitle: Angel-Searching Thief
+  charQuote: "\u201CIf I could see Lena's smiling face just one more time... then
+    I could die happy.\u201D"
+  cardIllustrator: "\u043FNekoR"
+  cardSkills:
+  - Pass [ACT] [FLIP 1] Until the end of the turn, if this unit is in the Front Line,
+    this unit can attack enemies in the Back Line regardless of range. This skill
+    is only usable if there are 2 or less enemies in the Front Line.
+  - The Just Thief's Treasure [TRIGGER] When this unit's attack destroys an enemy
+    and if this unit has used "Pass" this turn, your opponent may choose 1 card from
+    their hand and send it to the Retreat Area. If they do not, you draw 1 card.
+  charName: Julian
+  classTitle: Master Thief
+  deploymentCost: 3
+  canPromote: 1
+  promotionCost: 2
+  cardColor: 0100000000000000
+  charGender: 0100
+  charWeaponType: 01000000000000000000
+  unitTypes: 000000000000
+  baseAttack: 60
+  baseSupport: 10
+  baseRange: 010000

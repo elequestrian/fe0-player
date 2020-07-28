@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ab9f210baa9036846bc27ce66fae4693, type: 3}
+  m_Name: B01-009RCardData
+  m_EditorClassIdentifier: 
+  cardNumber: B01-009R
+  charTitle: Knight Hailed as the Panther
+  charQuote: "\u201CTake this!\u201D"
+  cardIllustrator: Raita Kazama
+  cardSkills:
+  - "Paladin\u2019s Protection [ALWAYS] Enemies in the Back Line cannot attack this
+    unit or allies with a Deployment Cost of 2 or lower."
+  - 'Green-Red Twin Strike [TRIGGER] [Tap an allied "Cain"] When this unit attacks,
+    you may pay the cost and if you do: Until the end of this combat, this unit gains
+    +40 attack.'
+  charName: Abel
+  classTitle: Paladin
+  deploymentCost: 3
+  canPromote: 1
+  promotionCost: 2
+  cardColor: 0100000000000000
+  charGender: 0100
+  charWeaponType: 00010000000000000000
+  unitTypes: 000001000000
+  baseAttack: 60
+  baseSupport: 10
+  baseRange: 010000

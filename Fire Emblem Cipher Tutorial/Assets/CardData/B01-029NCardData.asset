@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ab9f210baa9036846bc27ce66fae4693, type: 3}
+  m_Name: B01-029NCardData
+  m_EditorClassIdentifier: 
+  cardNumber: B01-029N
+  charTitle: Wind Mage
+  charQuote: "\u201CTwould be a passing shame if you didn't get to see me flex a little
+    magic muscle. Wait till I show you my latest: Excalibur!\u201D"
+  cardIllustrator: Yoshirou Anbe
+  cardSkills:
+  - Excalibur [ACT] [ONCE PER TURN] [FLIP 1] Until the end of the turn, this unit
+    acquires "Anti-Fliers". (Anti-Fliers [ALWAYS] If this unit is attacking a <Flier>,
+    this unit gains +30 attack.)
+  - '[ATK] Magic Emblem [SUPP] Draw 1 card. Choose 1 card from your hand, and send
+    it to the Retreat Area.'
+  charName: Merric
+  classTitle: Mage
+  deploymentCost: 1
+  canPromote: 0
+  promotionCost: 0
+  cardColor: 0100000000000000
+  charGender: 0100
+  charWeaponType: 00000000010000000000
+  unitTypes: 000000000000
+  baseAttack: 30
+  baseSupport: 20
+  baseRange: 010100

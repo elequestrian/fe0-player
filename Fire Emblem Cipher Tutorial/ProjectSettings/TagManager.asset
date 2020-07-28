@@ -1,0 +1,57 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!78 &1
+TagManager:
+  serializedVersion: 2
+  tags:
+  - Player1
+  - Player2
+  layers:
+  - Default
+  - TransparentFX
+  - Ignore Raycast
+  - 
+  - Water
+  - UI
+  - 
+  - 
+  - Deck
+  - Retreat
+  - Orb
+  - Bond
+  - Backline
+  - Frontline
+  - Support
+  - Hand
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  m_SortingLayers:
+  - name: Default
+    uniqueID: 0
+    locked: 0
+  - name: Background
+    uniqueID: 1436536967
+    locked: 0
+  - name: Midground
+    uniqueID: 3620266831
+    locked: 0
+  - name: Foreground
+    uniqueID: 1272086771
+    locked: 0
+  - name: Menu
+    uniqueID: 887859179
+    locked: 0

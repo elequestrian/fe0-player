@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ab9f210baa9036846bc27ce66fae4693, type: 3}
+  m_Name: B01-013HNCardData
+  m_EditorClassIdentifier: 
+  cardNumber: B01-013HN
+  charTitle: Bow Knight of the League
+  charQuote: "\u201CI was dead anyway till you came, sir... If I'm to die again, at
+    least let me die for you.\u201D"
+  cardIllustrator: Kokon Konfuzi
+  cardSkills:
+  - Warning Shot [TRIGGER] When you deploy an ally with a Deployment Cost 2 or less,
+    you may choose 1 <Flier> enemy, and move them.
+  - Anti-Fliers [ALWAYS] If this unit is attacking a <Flier>, this unit gains +30
+    attack.
+  charName: Gordin
+  classTitle: Sniper
+  deploymentCost: 3
+  canPromote: 1
+  promotionCost: 2
+  cardColor: 0100000000000000
+  charGender: 0100
+  charWeaponType: 00000001000000000000
+  unitTypes: 000000000000
+  baseAttack: 50
+  baseSupport: 20
+  baseRange: 000100

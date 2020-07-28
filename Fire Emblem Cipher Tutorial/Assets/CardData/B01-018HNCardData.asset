@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ab9f210baa9036846bc27ce66fae4693, type: 3}
+  m_Name: B01-018HNCardData
+  m_EditorClassIdentifier: 
+  cardNumber: B01-018HN
+  charTitle: Loyal Blade
+  charQuote: "\u201CThe king has bid me and my men join your army.\u201D"
+  cardIllustrator: Meisai
+  cardSkills:
+  - Mercenary Captain [ALWAYS] During your turn, if you have 2 or more other allies
+    with a Deployment Cost of 2 or less, this unit gains +20 attack.
+  - '[ATK] Attack Emblem [SUPP] Until the end of this combat, your attacking unit
+    gains +20 attack.'
+  charName: Ogma
+  classTitle: Mercenary
+  deploymentCost: 1
+  canPromote: 0
+  promotionCost: 0
+  cardColor: 0100000000000000
+  charGender: 0100
+  charWeaponType: 01000000000000000000
+  unitTypes: 000000000000
+  baseAttack: 40
+  baseSupport: 10
+  baseRange: 010000

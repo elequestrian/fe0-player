@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ab9f210baa9036846bc27ce66fae4693, type: 3}
+  m_Name: B01-028RCardData
+  m_EditorClassIdentifier: 
+  cardNumber: B01-028R
+  charTitle: Gale Sage
+  charQuote: "\u201CGet behind me. I'll face the enemy for us both.\u201D"
+  cardIllustrator: Yoshirou Anbe
+  cardSkills:
+  - Excalibur [ACT] [ONCE PER TURN] [FLIP 1] Until the end of the turn, this unit
+    acquires "Anti-Fliers". (Anti-Fliers [ALWAYS] If this unit is attacking a <Flier>,
+    this unit gains +30 attack.)
+  - The Supreme Wind Magic [TRIGGER] When this unit's attack destroys an enemy, if
+    this unit has used "Excalibur" in this turn, draw 1 card.
+  charName: Merric
+  classTitle: Sage
+  deploymentCost: 4
+  canPromote: 1
+  promotionCost: 3
+  cardColor: 0100000000000000
+  charGender: 0100
+  charWeaponType: 00000000010000000000
+  unitTypes: 000000000000
+  baseAttack: 60
+  baseSupport: 20
+  baseRange: 010100

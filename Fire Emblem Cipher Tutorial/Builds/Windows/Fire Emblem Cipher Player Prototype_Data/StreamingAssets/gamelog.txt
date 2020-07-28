@@ -1,0 +1,10 @@
+Welcome to the Fire Emblem 0 Player!
+
+Player 1 draws 6 cards.
+Player 2 draws 6 cards.
+
+Player 1's Marth: Altean Prince vs. Player 2's Marth: Altean Prince.  Let's start the game!
+
+The first player cannot draw a card or attack on the first turn.
+
+Begin Player 1's Turn:

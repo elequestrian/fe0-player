@@ -1,0 +1,63 @@
+Welcome to the Fire Emblem 0 Player!
+
+Player 1 draws 6 cards.
+Player 1 has mulliganed.
+Player 1 draws 6 cards.
+Player 2 draws 6 cards.
+
+Player 1's Abel: The Green Knight vs. Player 2's Marth: Altean Prince.  Let's start the game!
+
+The first player cannot draw a card or attack on the first turn.
+
+Begin Player 1's Turn:
+
+Begin Player 1's Bond Phase:
+
+Begin Player 1's Deployment Phase:
+
+Begin Player 1's Action Phase:
+
+Begin Player 1's End Phase:
+
+Begin Player 2's Turn:
+Player 2 draws 1 card.
+
+Begin Player 2's Bond Phase:
+
+Begin Player 2's Deployment Phase:
+
+Begin Player 2's Action Phase:
+
+Begin Player 2's End Phase:
+
+Begin Player 1's Turn:
+Player 1 draws 1 card.
+
+Begin Player 1's Bond Phase:
+Player 1 places Marth: Star and Savior in the Bond Area faceup.
+
+Begin Player 1's Deployment Phase:
+Player 1 deploys Navarre: Scarlet Sword to the Front Line!
+Navarre's Sword of the Cutthroats skill raises his attack by +20 until the end of the turn as long as he and the MC are the only cards on the field!
+
+Begin Player 1's Action Phase:
+
+Player 1's Abel attacks Player 2's Marth!
+Player 1 draws Gordin as a support!
+Player 2 draws Gordin as a support!
+Player 1's supported Gordin activates Attack Emblem. Abel's attack is boosted by +20 for this battle!
+The current battle state is Player 1's Abel with 80 attack vs. Player 2's Marth with 60 attack.
+The final battle state is Player 1's Abel with 80 attack vs. Player 2's Marth with 60 attack.
+Player 2's Marth is defeated!
+One of Player 2's orbs breaks and is added to their hand.
+
+
+Player 1's Navarre attacks Player 2's Marth!
+Player 1 draws Cain as a support!
+Player 2 draws Lena as a support!
+Player 2's supported Lena activates Miracle Emblem. Player 1's attacking Navarre cannot perform a Critical Hit in this battle!
+The current battle state is Player 1's Navarre with 70 attack vs. Player 2's Marth with 60 attack.
+The final battle state is Player 1's Navarre with 70 attack vs. Player 2's Marth with 60 attack.
+Player 2's Marth is defeated!
+One of Player 2's orbs breaks and is added to their hand.
+
