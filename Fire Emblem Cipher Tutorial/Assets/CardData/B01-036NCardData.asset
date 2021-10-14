@@ -21,6 +21,7 @@ MonoBehaviour:
     +10 attack.
   - '[ATK] Magic Emblem [SUPP] Draw 1 card. Choose 1 card from your hand, and send
     it to the Retreat Area.'
+  skillTypes: 010000000000000000000000000000
   charName: Linde
   classTitle: Mage
   deploymentCost: 1

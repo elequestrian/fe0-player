@@ -24,6 +24,7 @@ MonoBehaviour:
   - The Just Thief's Treasure [TRIGGER] When this unit's attack destroys an enemy
     and if this unit has used "Pass" this turn, your opponent may choose 1 card from
     their hand and send it to the Retreat Area. If they do not, you draw 1 card.
+  skillTypes: 000000000000000000000000000000
   charName: Julian
   classTitle: Master Thief
   deploymentCost: 3

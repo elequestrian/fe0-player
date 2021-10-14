@@ -24,6 +24,11 @@ public static class CipherData
     public static int NumRanges = 3;
     public enum RangesEnum { Range1, Range2, Range3}
 
+    //Creating a skill enum for each card so that the computer can know what types of skills are on each card.
+    public static int NumSkillTypes = 15;
+    public enum SkillTypeEnum { Support, ClassChange, Formation, LevelUp, Union, CarnageForm, Bond, DragonVein, Hero, Twin, Increase,
+        Awakening, DragonBlood, LegendaryItem, CrestPower }
+
     //This enum keeps track of the current phase in the game.
     public enum PhaseEnum { Beginning, Bond, Deployment, Action, End}
 }

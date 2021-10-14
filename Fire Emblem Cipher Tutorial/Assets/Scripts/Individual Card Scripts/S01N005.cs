@@ -78,7 +78,7 @@ public class S01N005 : BasicCard
         Owner.FinishBondFlipEvent.RemoveListener(ActivateKillingEdge);
 
         //updates the game log
-        CardReader.instance.UpdateGameLog(Owner.playerName + " activates Navarre's Killing Edge skill! " +
+        CardReader.instance.UpdateGameLog(DM.PlayerName + " activates Navarre's Killing Edge skill! " +
             "Navarre's attacks cannot be avoided this turn.");
 
         //set up the call to ensure that Navarre's attacks cannot be evaded.

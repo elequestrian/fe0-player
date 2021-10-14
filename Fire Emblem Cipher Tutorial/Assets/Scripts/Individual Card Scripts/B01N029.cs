@@ -67,7 +67,7 @@ public class B01N029 : BasicCard
         DeclareAttackEvent.AddListener(AbilitySupport.AntiFliers);
 
         //display the boost
-        CardReader.instance.UpdateGameLog(Owner.playerName + " activates Merric's Excalibur skill! " +
+        CardReader.instance.UpdateGameLog(DM.PlayerName + " activates Merric's Excalibur skill! " +
             "Merric: Wind Mage possesses the Anti-Flier's skill until the end of the turn.");
 
         AddToSkillChangeTracker("Excalibur active; Merric possesses the Anti-Fliers skill.");

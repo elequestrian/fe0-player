@@ -81,7 +81,7 @@ public class B01N028 : BasicCard
         DeclareAttackEvent.AddListener(AbilitySupport.AntiFliers);
 
         //display the boost
-        CardReader.instance.UpdateGameLog(Owner.playerName + " activates Merric's Excalibur skill! " +
+        CardReader.instance.UpdateGameLog(DM.PlayerName + " activates Merric's Excalibur skill! " +
             "Merric: Gale Sage possesses the Anti-Flier's skill until the end of the turn.");
         
         AddToSkillChangeTracker("Excalibur active; Merric possesses the Anti-Fliers skill.");
@@ -126,7 +126,7 @@ public class B01N028 : BasicCard
     }
 
     //activates the effect of the Supreme Wind Magic skill.
-    public override void ActivateTriggerSkill(BasicCard superfluous)
+    public override void ResolveTriggerSkillLP(BasicCard superfluous)
     {
         //Report the skill's effect.
         CardReader.instance.UpdateGameLog(GameManager.instance.CurrentDefender.CharName 

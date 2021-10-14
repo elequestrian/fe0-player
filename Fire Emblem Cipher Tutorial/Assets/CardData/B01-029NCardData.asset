@@ -23,6 +23,7 @@ MonoBehaviour:
     this unit gains +30 attack.)
   - '[ATK] Magic Emblem [SUPP] Draw 1 card. Choose 1 card from your hand, and send
     it to the Retreat Area.'
+  skillTypes: 000000000000000000000000000000
   charName: Merric
   classTitle: Mage
   deploymentCost: 1

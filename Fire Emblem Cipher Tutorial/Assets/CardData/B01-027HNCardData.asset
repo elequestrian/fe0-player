@@ -22,6 +22,7 @@ MonoBehaviour:
     that card has a Deployment Cost of 3 or more, you may [FLIP 1] to draw 1 card."
   - "Theft of Treasure [ACT] [FLIP 1] Send the topmost card of your opponent\u2019s
     Deck to their Retreat Area."
+  skillTypes: 000000000000000000000000000000
   charName: Julian
   classTitle: Thief
   deploymentCost: 2

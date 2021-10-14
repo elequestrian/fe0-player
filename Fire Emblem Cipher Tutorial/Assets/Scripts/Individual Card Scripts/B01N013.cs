@@ -45,6 +45,33 @@ public class B01N013 : BasicCard
         RemoveFromFieldEvent.Invoke(this);
     }
 
+    //Anti-Fliers [ALWAYS] If this unit is attacking a <Flier>, this unit gains +30 attack.
+    //Have the card AI decide who to attack based on Anti-Fliers.
+    public override void Act()
+    {
+        //Confirm if Gordin can/should use either of his abilities to attack.
+        List<BasicCard> targets = AttackTargets;
+
+        if (!GameManager.instance.FirstTurn && !Tapped && targets.Count > 0)
+        {
+            //Aim attack based on the abilty to easily take down flier enemies.
+            //Check that Gordin has Flier targets with no more than +10 attack compared to himself with the +30 buff.
+            List<BasicCard> flierTargets = targets.FindAll(enemy => enemy.UnitTypeArray[(int)CipherData.TypesEnum.Flier]
+            && enemy.CurrentAttackValue <= CurrentAttackValue + 40);
+
+            if (flierTargets.Count > 0)
+            {
+                //NOTE: We should also confirm if Gordin is likely to crit.
+
+                DM.ChooseAttackTarget(this, CurrentAttackValue + 30, flierTargets);
+                return;
+            }
+        }
+
+        //resume normal turn logic if we don't decide to attack a flier.
+        base.Act();
+    }
+
     //Warning Shot [TRIGGER] When you deploy an ally with a Deployment Cost 2 or less, you may choose 1 <Flier> enemy, and move them.
     //Checks to see if the ability can be used.
     public override bool CheckTriggerSkillCondition(BasicCard triggeringCard)
@@ -67,8 +94,9 @@ public class B01N013 : BasicCard
         return false;
     }
 
+    //allows a Local Player to decide whether to activate Gordon's Warning shot.
     //calls the dialogue box for the player to choose to use Warning Shot.
-    public override void ActivateTriggerSkill(BasicCard triggeringCard)
+    public override void ResolveTriggerSkillLP(BasicCard triggeringCard)
     {
         DialogueWindowDetails details = new DialogueWindowDetails
         {
@@ -116,7 +144,7 @@ public class B01N013 : BasicCard
         {
             cardsToDisplay = targets,
             numberOfCardsToPick = 1,
-            locationText = Owner.Opponent.playerName + "'s Field",
+            locationText = DM.Opponent.PlayerName + "'s Field",
             instructionText = "Please choose one card to move using Gordin's Warning Shot skill.",
             mayChooseLess = true,
             effectToActivate = eventToCall
@@ -127,7 +155,6 @@ public class B01N013 : BasicCard
         cardPicker.ChooseCards(details);
     }
 
-
     //Warning Shot [TRIGGER] When you deploy an ally with a Deployment Cost 2 or less, you may choose 1 <Flier> enemy, and move them.
     //Actually activates the ability, telling the opponent to move the chosen card. 
     private void WarningShot(List<BasicCard> target)
@@ -136,10 +163,37 @@ public class B01N013 : BasicCard
         if (target.Count > 0)
         {
             //displays the ability on the Game Log
-            CardReader.instance.UpdateGameLog("\n" + Owner.playerName + " activates Gordin's Warning Shot skill!");
+            CardReader.instance.UpdateGameLog("\n" + DM.PlayerName + " activates Gordin's Warning Shot skill!");
 
             Owner.Opponent.MoveCard(target[0]);
         }
+
+        //returns control to the deployTriggerTracker to recheck conditions and activate any remaining abilities.
+        Owner.deployTriggerTracker.RecheckTrigger();
+    }
+
+    //allows an AI Player to decide whether to activate Gordon's Warning shot.
+    //For now, the AI will always activate the ability if possible.
+    //EDIT: add a strategy call to the DM(?) for more sophisticated field analysis of whether to use the ability and which to move. 
+    //Warning Shot [TRIGGER] When you deploy an ally with a Deployment Cost 2 or less, you may choose 1 <Flier> enemy, and move them.
+    public override void ResolveTriggerSkillAI(BasicCard triggeringCard)
+    {
+        //Find the opponent's <Flier> cards.  Per the condition check above, there should be at least one.
+        List<BasicCard> enemies = Owner.Opponent.FieldCards;
+        List<BasicCard> targets = new List<BasicCard>(enemies.Count);
+
+        foreach (BasicCard enemy in enemies)
+        {
+            if (enemy.UnitTypeArray[(int)CipherData.TypesEnum.Flier])
+            {
+                targets.Add(enemy);
+            }
+        }
+
+        //displays the ability on the Game Log
+        CardReader.instance.UpdateGameLog("\n" + DM.PlayerName + " activates Gordin's Warning Shot skill!");
+
+        Owner.Opponent.MoveCard(targets[Random.Range(0, targets.Count)]);
 
         //returns control to the deployTriggerTracker to recheck conditions and activate any remaining abilities.
         Owner.deployTriggerTracker.RecheckTrigger();

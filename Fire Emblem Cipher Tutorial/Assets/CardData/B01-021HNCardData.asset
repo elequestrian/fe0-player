@@ -22,6 +22,7 @@ MonoBehaviour:
     this combat, this unit gains +50 attack and the number of Orbs that this unit''s
     attack will destroy becomes 2.'
   - Fighter's Expertise [ALWAYS] During your turn, this unit gains +20 attack.
+  skillTypes: 000001000000000000000000000000
   charName: Barst
   classTitle: Fighter
   deploymentCost: 2

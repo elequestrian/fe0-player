@@ -157,4 +157,34 @@ public static class EditorList
 
         EditorGUI.indentLevel -= 1;
     }
+
+    //Custom Editor for the Skill Types List
+    public static void ShowSkillTypeList(SerializedProperty list)
+    {
+        //check in case we try to show an non-array!
+        if (!list.isArray)
+        {
+            EditorGUILayout.HelpBox(list.name + " is neither an array nor a list!", MessageType.Error);
+            return;
+        }
+
+        EditorGUILayout.PropertyField(list);
+
+        EditorGUI.indentLevel += 1;
+        if (list.isExpanded)
+        {
+            SerializedProperty size = list.FindPropertyRelative("Array.size");
+            EditorGUILayout.PropertyField(size);
+            for (int i = 0; i < list.arraySize; i++)
+            {
+                string name = "";
+                if (Enum.IsDefined(typeof(CipherData.SkillTypeEnum), i))
+                    name = ((CipherData.SkillTypeEnum)i).ToString();
+
+                EditorGUILayout.PropertyField(list.GetArrayElementAtIndex(i), new GUIContent(name));
+            }
+        }
+
+        EditorGUI.indentLevel -= 1;
+    }
 }

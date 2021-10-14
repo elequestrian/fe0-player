@@ -107,7 +107,7 @@ public class S01N004 : BasicCard
     }
 
     //Activates Ogma's Captain of the Royal Talysian Army buffing skill. (No choice)
-    public override void ActivateTriggerSkill(BasicCard triggeringCard)
+    public override void ResolveTriggerSkillLP(BasicCard triggeringCard)
     {
         //displays the ability on the Game Log
         CardReader.instance.UpdateGameLog("\nOgma's Captain of the Royal Talysian Army skill raises the attack of himself and " 
@@ -217,7 +217,7 @@ public class S01N004 : BasicCard
         Owner.FinishBondFlipEvent.RemoveListener(ActivateLevinSword);
 
         //updates the game log
-        CardReader.instance.UpdateGameLog(Owner.playerName + " activates Ogma's Levin Sword skill! " +
+        CardReader.instance.UpdateGameLog(DM.PlayerName + " activates Ogma's Levin Sword skill! " +
             "Ogma gains <Tome> affinity, 1-2 range, and -10 attack.");
 
         //reduces attack by 10, adds the affinity and Range bonus, and displays effect in the skill tracker.

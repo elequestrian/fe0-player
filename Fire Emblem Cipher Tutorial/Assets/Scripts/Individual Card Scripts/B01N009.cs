@@ -24,6 +24,8 @@ public class B01N009 : BasicCard
     * Range: 1
     */
 
+    private bool shouldUseTwinStrike = false;
+
     // Use this for initialization
     void Awake()
     {
@@ -68,6 +70,58 @@ public class B01N009 : BasicCard
     }
 
     //Green-Red Twin Strike [TRIGGER] [Tap an allied "Cain"] When this unit attacks, you may pay the cost and if you do: Until the end of this combat, this unit gains +40 attack.
+    //Have the card AI decide whether or not to use Green-Red Twin Strike.
+    public override void Act()
+    {
+        //Reset the Twin Strike bool.
+        shouldUseTwinStrike = false;
+
+        //Confirm that Abel has attack targets
+        List<BasicCard> targets = AttackTargets;
+
+        if (!GameManager.instance.FirstTurn && !Tapped && targets.Count > 0)
+        {
+            //Confirm if we CAN use the ability.
+            //Check that there are other allies.
+            if (OtherAllies.Count >= 1)
+            {
+                //check if Cain is deployed
+                List<BasicCard> otherAllies = OtherAllies;
+                int n = otherAllies.FindIndex(ally => ally.CompareNames("Cain"));
+
+                if (n >= 0)
+                {
+                    //confirm Cain is untapped.
+                    if (!otherAllies[n].Tapped)
+                    {
+                        //We can use Green-Red Twin Strike.  Now to decide if we should.
+                        //First, check that Abel has a high attack (more than +20 above his attack) enemy to target.
+                        List<BasicCard> highAttackTargets = targets.FindAll(enemy => enemy.CurrentAttackValue >= CurrentAttackValue + 20);
+
+                        //Second, check that Cain doesn't have good targets for his attack (no targets same or lower attack).
+                        List<BasicCard> goodCainTargets = otherAllies[n].AttackTargets.FindAll(enemy => enemy.CurrentAttackValue <= otherAllies[n].CurrentAttackValue);
+
+                        //NOTE: We could also confirm that Cain isn't likely to crit anything, but since this ability only gives up
+                        //a unit's action (a reusable resource), I think it's better to save the Cain card for dodge fodder or deployment.
+
+                        if (highAttackTargets.Count > 0 && goodCainTargets.Count == 0)
+                        {
+                            //Let's go!  Confirm we want to activate Green-Red Twin Strike and have the Decision Maker find a good
+                            //high attack target!
+                            shouldUseTwinStrike = true;
+                            DM.ChooseAttackTarget(this, CurrentAttackValue + 40, highAttackTargets);
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+        
+        //resume normal turn logic if we decide not to use Green-Red Twin Strike
+        base.Act();
+    }
+
+    //Green-Red Twin Strike [TRIGGER] [Tap an allied "Cain"] When this unit attacks, you may pay the cost and if you do: Until the end of this combat, this unit gains +40 attack.
     //Ensures the conditions are met to make a twin strike and then asks the player if they want to activate that ability.
     private void CheckTwinStrike(bool attacking)
     {
@@ -86,29 +140,40 @@ public class B01N009 : BasicCard
                     //confirm Cain is untapped.
                     if (!otherAllies[n].Tapped)
                     {
-                        //conditions met; call a dialogue box to confirm if the player wants to use Green-Red Twin Strike.
-                        DialogueWindowDetails details = new DialogueWindowDetails
+                        //conditions met; Check if the decision maker is an AI or human.
+                        if (DM is AIPlayer)
                         {
-                            windowTitleText = "Green-Red Twin Strike",
-                            questionText = "Would you like to activate Abel's Green-Red Twin Strike?" +
-                            "\n\nGreen-Red Twin Strike [TRIGGER] [Tap an allied \"Cain\"] When this unit attacks, you may pay the cost and if you do: Until the end of this combat, this unit gains +40 attack.",
-                            button1Details = new DialogueButtonDetails
+                            //Confirm whether the AI already decided to use Red-Green Twin Strike 
+                            if (shouldUseTwinStrike)
+                                GreenRedTwinStrike(otherAllies[n]);
+                        }
+                        //The decisionMaker is a human.  Call a dialogue box to confirm if the player wants to use Green-Red Twin Strike.
+                        else
+                        {
+                            DialogueWindowDetails details = new DialogueWindowDetails
                             {
-                                buttonText = "Yes",
-                                buttonAction = () => { GreenRedTwinStrike(otherAllies[n]); }
-                            },
-                            button2Details = new DialogueButtonDetails
-                            {
-                                buttonText = "No",
-                                buttonAction = () => { Debug.Log("No Green-Red Twin Strike. :("); }
-                            }
-                        };
+                                windowTitleText = "Green-Red Twin Strike",
+                                questionText = "Would you like to activate Abel's Green-Red Twin Strike?" + 
+                                "\n\nGreen-Red Twin Strike [TRIGGER] [Tap an allied \"Cain\"] When this unit attacks, " +
+                                "you may pay the cost and if you do: Until the end of this combat, this unit gains +40 attack.",
+                                button1Details = new DialogueButtonDetails
+                                {
+                                    buttonText = "Yes",
+                                    buttonAction = () => { GreenRedTwinStrike(otherAllies[n]); }
+                                },
+                                button2Details = new DialogueButtonDetails
+                                {
+                                    buttonText = "No",
+                                    buttonAction = () => { Debug.Log("No Green-Red Twin Strike. :("); }
+                                }
+                            };
 
-                        DialogueWindow dialogueWindow = DialogueWindow.Instance();
-                        dialogueWindow.MakeChoice(details);
+                            DialogueWindow dialogueWindow = DialogueWindow.Instance();
+                            dialogueWindow.MakeChoice(details);
+                        }
+                        
                     }
                 }
-
             }
         }
     }
@@ -124,7 +189,7 @@ public class B01N009 : BasicCard
         attackModifier += 40;
 
         //display the skill's activation and effect.
-        CardReader.instance.UpdateGameLog(Owner.playerName + " activates Abel's Green-Red Twin Strike skill to tap Cain and give Abel " +
+        CardReader.instance.UpdateGameLog(DM.PlayerName + " activates Abel's Green-Red Twin Strike skill to tap Cain and give Abel " +
             "+40 attack during this battle!");
         AddToSkillChangeTracker("Abel's Green-Red Twin Strike skill providing +40 attack.");
 

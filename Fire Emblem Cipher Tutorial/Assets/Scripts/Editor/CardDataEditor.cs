@@ -15,6 +15,7 @@ public class CardDataEditor : Editor
     public string charQuote;
     public string cardIllustrator;
     public string[] cardSkills;
+    public bool[] skillTypes;
 
     public string charName;
     public string classTitle;
@@ -36,6 +37,7 @@ public class CardDataEditor : Editor
     SerializedProperty charQuote;
     SerializedProperty cardIllustrator;
     SerializedProperty cardSkills;
+    SerializedProperty skillTypes;
 
     SerializedProperty charName;
     SerializedProperty classTitle;
@@ -58,6 +60,7 @@ public class CardDataEditor : Editor
         charQuote = serializedObject.FindProperty("charQuote");
         cardIllustrator = serializedObject.FindProperty("cardIllustrator");
         cardSkills = serializedObject.FindProperty("cardSkills");
+        skillTypes = serializedObject.FindProperty("skillTypes");
 
         charName = serializedObject.FindProperty("charName");
         classTitle = serializedObject.FindProperty("classTitle");
@@ -83,6 +86,7 @@ public class CardDataEditor : Editor
         EditorGUILayout.PropertyField(charQuote);
         EditorGUILayout.PropertyField(cardIllustrator);
         EditorGUILayout.PropertyField(cardSkills, true, GUILayout.ExpandHeight(true));
+        EditorList.ShowSkillTypeList(skillTypes);
 
         EditorGUILayout.PropertyField(charName);
         EditorGUILayout.PropertyField(classTitle);

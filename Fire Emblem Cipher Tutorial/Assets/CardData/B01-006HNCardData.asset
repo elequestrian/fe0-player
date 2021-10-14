@@ -21,6 +21,7 @@ MonoBehaviour:
     end of the turn, that unit gains +10 attack.
   - '[ATK] Elysian Emblem [SUPP] Choose 1 ally other than your attacking unit. You
     may move that ally.'
+  skillTypes: 000000000000000000000000000000
   charName: Caeda
   classTitle: Pegasus Knight
   deploymentCost: 1

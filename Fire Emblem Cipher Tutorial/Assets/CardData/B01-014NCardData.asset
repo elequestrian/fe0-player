@@ -23,6 +23,7 @@ MonoBehaviour:
     attack.
   - '[ATK] Attack Emblem [SUPP] Until the end of this combat, your attacking unit
     gains +20 attack.'
+  skillTypes: 010000000000000000000000000000
   charName: Gordin
   classTitle: Archer
   deploymentCost: 1

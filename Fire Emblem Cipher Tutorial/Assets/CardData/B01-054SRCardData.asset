@@ -24,6 +24,7 @@ MonoBehaviour:
     of your deck."
   - Parallel Falchion [ALWAYS] If this unit is attacking a <Dragon> unit, this unit
     gains +20 attack.
+  skillTypes: 000000000000000000000000000000
   charName: Lucina
   classTitle: Great Lord
   deploymentCost: 4

@@ -4,6 +4,7 @@ using UnityEngine;
 using System.IO;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using UnityEngine.Events;
 
 public class GameManager : MonoBehaviour {
 
@@ -15,20 +16,24 @@ public class GameManager : MonoBehaviour {
     public Text phaseButtonText;
     public bool cardBonded;                         //Tracks whether or not a card has already been bonded this turn.
     public int bondDeployCount;                    //Tracks the number of bonds used to deploy units this turn.
-    public CardManager turnPlayer;
-    public LayoutManager playerLayoutManager;
-    public LayoutManager enemyLayoutManager;
-    public RetreatView playerRetreatView;
-    public RetreatView enemyRetreatView;
+    public CardManager turnPlayer;                  //Needs to be removed.
+    public DecisionMaker turnAgent;
+    public CardManager player1;                    //this is a reference to the Cardmanager for the first player's cards.
+    public CardManager player2;
     public bool playtestMode = true;                //checks if the game is in Playtest mode and if so allows for convenient features.
+    public bool versusAI = false;                   //checks if the game is set to be versus an AI opponent.
 
     private bool firstTurn = false;
     private CipherData.PhaseEnum currentPhase;      //This enum keeps track of the current phase in the game: 0 = Beginning, 1 = Bond, 2 = Deployment, 3 = Action, 4 = End;
+    private float turnCount = 0f;
+
+    private DecisionMaker agent1;
+    private DecisionMaker agent2;
+
     
-    private CardManager player1;                    //this is a reference to the Cardmanager for the first player's cards.
-    private CardManager player2;
     private DeckList decklist1;
     private DeckList decklist2;
+    private string playerDeck = "WarOfShadows.dek";
 
     //this is a reference to the deck being used in this test environment.
     //It is a class level property because it's needed for separate methods (MC setting). 
@@ -46,7 +51,7 @@ public class GameManager : MonoBehaviour {
     private BasicCard currentAttacker;
     private BasicCard currentDefender;
     public bool inCombat = false;
-    private bool criticalHit = false;
+    public bool criticalHit = false;
     public int numOrbsToBreak = 1;
     private bool canDefenderEvade = true;
     private bool canAttackerCrit = true;
@@ -58,6 +63,12 @@ public class GameManager : MonoBehaviour {
     public BasicCard CurrentAttacker { get { return currentAttacker; } }
     public BasicCard CurrentDefender { get { return currentDefender; } }
     public bool CriticalHit { get { return criticalHit; } }
+
+    //A property that returns the per player turn count (1, 1, 2, 2, 3, 3, etc.)
+    public int PlayerTurnCount { get { return (int)Mathf.Floor(turnCount + 1); } }
+
+    //A property that returns the actual game turn count (zero indexed)
+    public int GameTurnCount { get { return Mathf.RoundToInt(turnCount * 2f); } }
 
     //Awake is always called before any Start functions
     void Awake()
@@ -78,20 +89,19 @@ public class GameManager : MonoBehaviour {
     // Use this for initialization
     void Start ()
     {
+        //TEMP PAUSE
+        //This pause is necessary because I don't have a separate landing screen, so this is where players get oriented.
         
-        hintText.text = "Press the red button to the left to start the game.";
-        phaseButtonText.text = "Start Game";
+        SetPhaseButtonAndHint("Press the red button to the left to start the game.", "Start Game", SetupGame);
+    }
+
+    //This method allows other classes (specifically player agents) to adjust the Phase Button and Hint text as needed.
+    public void SetPhaseButtonAndHint(string hint, string phaseText, UnityAction action)
+    {
+        hintText.text = hint;
+        phaseButtonText.text = phaseText;
         phaseButton.onClick.RemoveAllListeners();
-        phaseButton.onClick.AddListener(SetupGame);
-        
-        /*
-        //Create, save, and load a decklist for player 1.
-        DeckList testDeck = CreateTestDeck();
-        SaveDeckList(testDeck, testDeckFileName);
-        List<BasicCard> loadedDeck = LoadDeckList(testDeckFileName);
-        player1 = new CardManager(loadedDeck);
-        DrawHand();
-        */
+        phaseButton.onClick.AddListener(action);
     }
 
     void SetupGame()
@@ -99,259 +109,62 @@ public class GameManager : MonoBehaviour {
         //Create, save, and load a decklist for each player.
 
         //Create and save the decklist.  Needs to be moved to a Deck creator mode.
-        //testDeck = CreateTestDeck();
-        //SaveDeckList(testDeck, testDeckFileName);
+        testDeck = CreateTestDeck();
+        SaveDeckList(testDeck, testDeckFileName);
 
-
-        decklist1 = LoadDeckList(testDeckFileName);
+        decklist1 = LoadDeckList(playerDeck);
         decklist2 = LoadDeckList(testDeckFileName);
-        player1 = new CardManager(CreateDeck(decklist1), playerLayoutManager, playerRetreatView, "Player 1");
 
-        //creates a second player as well.
-        player2 = new CardManager(CreateDeck(decklist2), enemyLayoutManager, enemyRetreatView,"Player 2");
+        //creates a human player
+        agent1 = player1.gameObject.AddComponent<LocalPlayer>() as LocalPlayer;
+        agent1.Setup(decklist1, player1, "Player 1");
+        //agent1 = new LocalPlayer(decklist1, player1, "Player 1");
 
+        //creates a second player as well based on the type of game.
+        if (versusAI)
+        {
+            agent2 = player2.gameObject.AddComponent<AIPlayer>() as AIPlayer;
+            agent2.Setup(decklist2, player2, "AI Player");
+            //agent2 = new AIPlayer(decklist2, player2, "AI Player");
+        }
+        else    //assumes the player is against another local human opponent.
+        {
+            agent2 = player2.gameObject.AddComponent<LocalPlayer>() as LocalPlayer;
+            agent2.Setup(decklist2, player2, "Player 2");
+            //agent2 = new LocalPlayer(decklist2, player2, "Player 2");
+        }
+        
         //sets the two players as opponents
+        agent1.SetOpponent(agent2);
+        agent2.SetOpponent(agent1);
         player1.SetOpponent(player2);
         player2.SetOpponent(player1);
 
-
-
-
-        /*
-         *  player1.Draw(1);
-         *  player1.DeployToFrontLine(player1.Hand[0]);
-         *  player1.FrontLineCards[0].Tap();
-         */
+        turnPlayer = player1;
+        turnAgent = agent1;
 
         //Sets the first player's MC.
-        //Note that the following methods need to be called separately since I don't know how to pause the GameManager's processes.
-        CheckDefaultMCPlayer1(player1, decklist1);
-
-
+        agent1.PlayerSetup();
     }
 
-    //This method checks if the first player wants to use the default MC.
-    private void CheckDefaultMCPlayer1(CardManager firstPlayer, DeckList deckList)
+    //This method helps the player choose their MC and then look over their hand to consider a mulligan.
+    //The coroutine ensures that the player's hand isn't drawn until the MC has been chosen.
+    //The game then sets up the Phase button to allow the player to look at their hand and choose whether to Mulligan.
+    public IEnumerator HumanPlayerSetup(LocalPlayer agent)
     {
-        //First check if there is a default MC.
-        if (deckList.DefaultMC != null)
-        {
-            //Find the MC card in the deck.  -1 if not found.
-            int MCIndex = firstPlayer.Deck.FindIndex(x => x.CardNumber.Equals(deckList.DefaultMC));
+        agent.CheckDefaultMC();
+        yield return new WaitUntil(() => agent.CardManager.MCStack != null);
 
-            if (MCIndex >= 0)
-            {
-                List<BasicCard> defaultMCList = new List<BasicCard>(1);
-                defaultMCList.Add(firstPlayer.Deck[MCIndex]);
+        string hint = agent.PlayerName + ": Look over your hand, and decide if you would like to keep it or draw another. " +
+            //"It's generally best to have at least one promotion for your Main Character in hand at the start of the game. " +
+            "Click the red button when you are ready to choose.";
 
-                //display the defaultMC in the Card Reader
-                CardReader.instance.DisplayCard(defaultMCList[0].gameObject);
+        SetPhaseButtonAndHint(hint, "Mulligan?", agent.MulliganChoice);
 
-                //Ask if the player wants to use the Default Lord
-                DialogueWindowDetails details = new DialogueWindowDetails
-                {
-                    windowTitleText = firstPlayer.playerName + "'s Main Character Choice",
-                    questionText = "Would you like to use " + defaultMCList[0].CharName 
-                        + " as your Main Character or choose a different one?",
-                    button1Details = new DialogueButtonDetails
-                    {
-                        buttonText = "Use " + defaultMCList[0].CharName,
-                        buttonAction = () => { SetPlayer1MC(defaultMCList); },
-                    },
-                    button2Details = new DialogueButtonDetails
-                    {
-                        buttonText = "See All Choices",
-                        buttonAction = () => { ChooseMCPlayer1(firstPlayer); },
-                    }
-                };
+        //lets the player look at thier MC while "mulling" a mulligan.
+        agent.CardManager.MCCard.FlipFaceUp();
 
-                DialogueWindow dialogueWindow = DialogueWindow.Instance();
-                dialogueWindow.MakeChoice(details);
-            }
-            //Could not find the MC in the deck; have the player choose one.
-            else
-            {
-                Debug.LogWarning("Method CheckDefaultMC could not find the DeckList's DefaultMC: " + deckList.DefaultMC 
-                    + " in " + firstPlayer.playerName + "'s Deck.");
-                ChooseMCPlayer1(firstPlayer);
-            }
-        }
-        //If no default MC, then choose one.
-        else
-        {
-            Debug.Log("No default MC assigned to for " + firstPlayer.playerName + "'s DeckList.");
-            ChooseMCPlayer1(firstPlayer);
-        }
-    }
-
-    //This method lets the first player choose their MC from all possible 1 cost cards in the deck.
-    public void ChooseMCPlayer1(CardManager firstPlayer)
-    {
-        //Identify which cards are possible lords
-        List<BasicCard> potentialMCs = new List<BasicCard>(firstPlayer.Deck.Count);
-
-        for (int i = 0; i < firstPlayer.Deck.Count; i++)
-        {
-            if (firstPlayer.Deck[i].DeploymentCost == 1)
-            {
-                potentialMCs.Add(firstPlayer.Deck[i]);
-            }
-        }
-
-        //This sets up the method to call after the CardPicker finishes.
-        MyCardListEvent eventToCall = new MyCardListEvent();
-        eventToCall.AddListener(SetPlayer1MC);
-
-        //makes the player choose a Cost 1 card as their Main Character (Lord).
-        CardPickerDetails details = new CardPickerDetails
-        {
-            cardsToDisplay = potentialMCs,
-            numberOfCardsToPick = 1,
-            locationText = firstPlayer.playerName + "'s Deck",
-            instructionText = "Please choose a Cost 1 card to serve as your Main Character.",
-            mayChooseLess = false,
-            effectToActivate = eventToCall
-        };
-
-        CardPickerWindow cardPicker = CardPickerWindow.Instance();
-        cardPicker.ChooseCards(details);
-    }
-
-    //This method actually sets the first player's MC and then triggers a similar set of logic for the second player.
-    public void SetPlayer1MC(List<BasicCard> oneCard)
-    {
-        if (oneCard.Count < 1)
-        {
-            Debug.LogError("CardPicker returned an improper list to SetPlayer1MC(). List had 0 cards. Investigate!");
-            return;
-        }
-        else if (oneCard.Count > 1)
-        {
-            Debug.LogWarning("CardPicker returned an improper list to SetPlayer1MC(). List had multiple cards. Investigate!");
-        }
-
-        player1.SetMCAtStart(oneCard[0]);
-        CardReader.instance.DisplayGameLog();
-
-        hintText.text = "Press the red button to let the second player choose their Main Character.";
-        phaseButtonText.text = "Player 2 MC";
-        phaseButton.onClick.RemoveAllListeners();
-        phaseButton.onClick.AddListener(Player2MCChoice);
-    }
-
-    //A tiny no argument method to allow for the triggering of the second player's MC choice from the Phase Button.
-    private void Player2MCChoice()
-    {
-        CheckDefaultMCPlayer2(player2, decklist2);
-    }
-
-    //This method checks if the second player wants to use the default MC.
-    private void CheckDefaultMCPlayer2(CardManager secondPlayer, DeckList deckList)
-    {
-        //First check if there is a default MC.
-        if (deckList.DefaultMC != null)
-        {
-            //Find the MC card in the deck.  -1 if not found.
-            int MCIndex = secondPlayer.Deck.FindIndex(x => x.CardNumber.Equals(deckList.DefaultMC));
-
-            if (MCIndex >= 0)
-            {
-                List<BasicCard> defaultMCList = new List<BasicCard>(1);
-                defaultMCList.Add(secondPlayer.Deck[MCIndex]);
-
-                //display the defaultMC in the Card Reader
-                CardReader.instance.DisplayCard(defaultMCList[0].gameObject);
-
-                //Ask if the player wants to use the Default Lord
-                DialogueWindowDetails details = new DialogueWindowDetails
-                {
-                    windowTitleText = secondPlayer.playerName + "'s Main Character Choice",
-                    questionText = "Would you like to use " + defaultMCList[0].CharName
-                        + " as your Main Character or choose a different one?",
-                    button1Details = new DialogueButtonDetails
-                    {
-                        buttonText = "Use " + defaultMCList[0].CharName,
-                        buttonAction = () => { SetPlayer2MC(defaultMCList); },
-                    },
-                    button2Details = new DialogueButtonDetails
-                    {
-                        buttonText = "See All Choices",
-                        buttonAction = () => { ChooseMCPlayer2(secondPlayer); },
-                    }
-                };
-
-                DialogueWindow dialogueWindow = DialogueWindow.Instance();
-                dialogueWindow.MakeChoice(details);
-            }
-            //Could not find the MC in the deck; have the player choose one.
-            else
-            {
-                Debug.LogWarning("Method CheckDefaultMC could not find the DeckList's DefaultMC: " + deckList.DefaultMC
-                    + " in " + secondPlayer.playerName + "'s Deck.");
-                ChooseMCPlayer2(secondPlayer);
-            }
-        }
-        //If no default MC, then choose one.
-        else
-        {
-            Debug.Log("No default MC assigned to for " + secondPlayer.playerName + "'s DeckList.");
-            ChooseMCPlayer2(secondPlayer);
-        }
-    }
-
-    //This method lets the second player choose their MC from all possible 1 cost cards in the deck.
-    public void ChooseMCPlayer2(CardManager secondPlayer)
-    {
-        //Identify which cards are possible lords
-        List<BasicCard> potentialMCs = new List<BasicCard>(secondPlayer.Deck.Count);
-
-        for (int i = 0; i < secondPlayer.Deck.Count; i++)
-        {
-            if (secondPlayer.Deck[i].DeploymentCost == 1)
-            {
-                potentialMCs.Add(secondPlayer.Deck[i]);
-            }
-        }
-
-        //This sets up the method to call after the CardPicker finishes.
-        MyCardListEvent eventToCall = new MyCardListEvent();
-        eventToCall.AddListener(SetPlayer2MC);
-
-        //makes the player choose a Cost 1 card as their Main Character (Lord).
-        CardPickerDetails details = new CardPickerDetails
-        {
-            cardsToDisplay = potentialMCs,
-            numberOfCardsToPick = 1,
-            locationText = secondPlayer.playerName + "'s Deck",
-            instructionText = "Please choose a Cost 1 card to serve as your Main Character.",
-            mayChooseLess = false,
-            effectToActivate = eventToCall
-        };
-
-        CardPickerWindow cardPicker = CardPickerWindow.Instance();
-        cardPicker.ChooseCards(details);
-    }
-
-    //This method actually sets the second player's MC and then checks for mulligans.
-    public void SetPlayer2MC(List<BasicCard> oneCard)
-    {
-        if (oneCard.Count < 1)
-        {
-            Debug.LogError("CardPicker returned an improper list to SetPlayer2MC(). List had 0 cards. Investigate!");
-            return;
-        }
-        else if (oneCard.Count > 1)
-        {
-            Debug.LogWarning("CardPicker returned an improper list to SetPlayer2MC(). List had multiple cards. Investigate!");
-        }
-
-        player2.SetMCAtStart(oneCard[0]);
-        CardReader.instance.DisplayGameLog();
-
-        hintText.text = "Press the red button to let the first player draw their initial hand.";
-        phaseButtonText.text = player1.playerName + " Draw";
-        phaseButton.onClick.RemoveAllListeners();
-        phaseButton.onClick.AddListener(DrawHandPlayer1);
+        agent.CardManager.Draw(6);
     }
 
     /*
@@ -378,181 +191,13 @@ public class GameManager : MonoBehaviour {
     }
     */
 
-    /*
-     * The following methods had to be replaced with more specific ones because of 
-     * constraints on how the Game Manager flows through the beginning game logic.
-     * I don't know how to make the game pause for new input without just running out of code in a method. :/
-     * 
-//This method checks if the player wants to use the default MC.
-public void CheckDefaultMC(CardManager player, DeckList deckList)
-{
-    //First check if there is a default MC.
-    if (deckList.DefaultMC != null)
-    {
-        //Find the MC card in the deck.  -1 if not found.
-        int MCIndex = player.Deck.FindIndex(x => x.CardNumber.Equals(deckList.DefaultMC));
-
-        if (MCIndex >= 0)
-        {
-            List<BasicCard> defaultMCList = new List<BasicCard>(1);
-            defaultMCList.Add(player.Deck[MCIndex]);
-
-            //display the defaultMC in the Card Reader
-            CardReader.instance.DisplayCard(defaultMCList[0].gameObject);
-
-            //Ask if the players wants to use the Default Lord
-            DialogueWindowDetails details = new DialogueWindowDetails
-            {
-                windowTitleText = player.playerName + "'s Main Character Choice",
-                questionText = "Would you like to use " + defaultMCList[0].CharName
-                    + " as your Main Character or choose a different one?",
-                button1Details = new DialogueButtonDetails
-                {
-                    buttonText = "Use " + defaultMCList[0].CharName,
-                    buttonAction = () => { player.SetMCAtStart(defaultMCList); },
-                },
-                button2Details = new DialogueButtonDetails
-                {
-                    buttonText = "See All Choices",
-                    buttonAction = () => { ChooseMC(player); },
-                }
-            };
-
-            DialogueWindow dialogueWindow = DialogueWindow.Instance();
-            dialogueWindow.MakeChoice(details);
-        }
-        //Could not find the MC in the deck; have the player choose one.
-        else
-        {
-            Debug.LogWarning("Method CheckDefaultMC could not find the DeckList's DefaultMC: " + deckList.DefaultMC
-                + " in " + player.playerName + "'s Deck.");
-            ChooseMC(player);
-        }
-    }
-    //If no default MC, then choose one.
-    else
-    {
-        Debug.Log("No default MC assigned to for " + player.playerName + "'s DeckList.");
-        ChooseMC(player);
-    }
-}
-
-//This method lets the player choose their MC from all possible 1 cost cards in the deck.
-public void ChooseMC(CardManager player)
-{
-    //Identify which cards are possible lords
-    List<BasicCard> potentialMCs = new List<BasicCard>(player.Deck.Count);
-
-    for (int i = 0; i < player.Deck.Count; i++)
-    {
-        if (player.Deck[i].DeploymentCost == 1)
-        {
-            potentialMCs.Add(player.Deck[i]);
-        }
-    }
-
-    //This sets up the method to call after the CardPicker finishes.
-    MyCardListEvent eventToCall = new MyCardListEvent();
-    eventToCall.AddListener(player.SetMCAtStart);
-
-    //makes the player choose a Cost 1 card as their Main Character (Lord).
-    CardPickerDetails details = new CardPickerDetails
-    {
-        cardsToDisplay = potentialMCs,
-        numberOfCardsToPick = 1,
-        locationText = player.playerName + "'s Deck",
-        instructionText = "Please choose a Cost 1 card to serve as your Main Character.",
-        mayChooseLess = false,
-        effectToActivate = eventToCall
-    };
-
-    CardPickerWindow cardPicker = CardPickerWindow.Instance();
-    cardPicker.ChooseCards(details);
-}
-*/
-
-    //Draws 6 cards to the player's hand and tells them to consider a mulligan.
-    private void DrawHandPlayer1()
-    {
-        turnPlayer = player1;
-
-        hintText.text = player1.playerName + ": Look over your hand, and decide if you would like to keep it or draw another. " +
-            //"It's generally best to have at least one promotion for your Main Character in hand at the start of the game. " +
-            "Click the red button when you are ready to choose.";
-        phaseButtonText.text = "Mulligan?";
-        phaseButton.onClick.RemoveAllListeners();
-        phaseButton.onClick.AddListener(MulliganChoicePlayer1);
-
-        //lets the player look at thier MC while "mulling" a mulligan.
-        player1.MCCard.FlipFaceUp();
-
-        player1.Draw(6);
-    }
-
-    //lets them choose to keep their hand or mulligan once.
-    private void MulliganChoicePlayer1()
-    {
-        //lets the player choose whether to mulligan their hand or not.
-        DialogueWindowDetails details = new DialogueWindowDetails
-        {
-            windowTitleText = player1.playerName + ": Mulligan",
-            questionText = "Would you like to keep your hand or draw a new one?",
-            button1Details = new DialogueButtonDetails
-            {
-                buttonText = "Keep Hand",
-                buttonAction = () => { BeginPlayer2Mulligan(); },
-            },
-            button2Details = new DialogueButtonDetails
-            {
-                buttonText = "Draw New Hand",
-                buttonAction = () => { CardReader.instance.UpdateGameLog(player1.playerName + " has mulliganed.");
-                    player1.Mulligan(); BeginPlayer2Mulligan(); },
-            }
-        };
-
-        DialogueWindow dialogueWindow = DialogueWindow.Instance();
-        dialogueWindow.MakeChoice(details);
-    }
-
-    private void BeginPlayer2Mulligan()
-    {
-        //hide player 1 MC.
-        player1.MCCard.FlipFaceDown();
-
-        hintText.text = "Press the red button to let the second player draw their initial hand.";
-        phaseButtonText.text = player2.playerName + " Draw";
-        phaseButton.onClick.RemoveAllListeners();
-        phaseButton.onClick.AddListener(DrawHandPlayer2);
-    }
-
-    //Draws 6 cards to the player's hand and tells them to consider a mulligan.
-    private void DrawHandPlayer2()
-    {
-        //Hide card views from the other player.
-        CardReader.instance.DisplayGameLog();
-        turnPlayer = player2;
-        ShowHand(player2);
-
-        hintText.text = player2.playerName + ": Look over your hand, and decide if you would like to keep it or draw another. " +
-            //"It's generally best to have at least one promotion for your Main Character in hand at the start of the game. " +
-            "Click the red button when you are ready to choose.";
-        phaseButtonText.text = "Mulligan?";
-        phaseButton.onClick.RemoveAllListeners();
-        phaseButton.onClick.AddListener(MulliganChoicePlayer2);
-
-        //lets the player look at thier MC while "mulling" a mulligan.
-        player2.MCCard.FlipFaceUp();
-
-        player2.Draw(6);       
-    }
-
     //This helper method sets up the board for the new incoming turn player.
     //Usually this means flipping hands face-up or down as appropriate.
-    public void ShowHand(CardManager newActivePlayer)
+    public void ShowHand(DecisionMaker newActiveAgent)
     {
-        
+
         //flip the current turn player's hand faceUp.
-        foreach (var card in newActivePlayer.Hand)
+        foreach (var card in newActiveAgent.CardManager.Hand)
         {
             if (!card.FaceUp)
             {
@@ -563,7 +208,7 @@ public void ChooseMC(CardManager player)
         if (!playtestMode)
         {
             //flip the opponent's hand facedown.
-            foreach (var card in newActivePlayer.Opponent.Hand)
+            foreach (var card in newActiveAgent.Opponent.CardManager.Hand)
             {
                 if (card.FaceUp)
                 {
@@ -573,142 +218,79 @@ public void ChooseMC(CardManager player)
         }
     }
 
-    //lets them choose to keep their hand or mulligan once. 
-    private void MulliganChoicePlayer2()
-    {
-        //lets the player choose whether to mulligan their hand or not.
-        DialogueWindowDetails details = new DialogueWindowDetails
-        {
-            windowTitleText = player2.playerName + ": Mulligan",
-            questionText = "Would you like to keep your hand or draw a new one?",
-            button1Details = new DialogueButtonDetails
-            {
-                buttonText = "Keep Hand",
-                buttonAction = () => { BeginGame(); },
-            },
-            button2Details = new DialogueButtonDetails
-            {
-                buttonText = "Draw New Hand",
-                buttonAction = () => { CardReader.instance.UpdateGameLog(player2.playerName + " has mulliganed.");
-                    player2.Mulligan(); BeginGame(); },
-            }
-        };
-
-        DialogueWindow dialogueWindow = DialogueWindow.Instance();
-        dialogueWindow.MakeChoice(details);
-
-    }
-
     //Begins the game by setting out orbs and flipping the players' MCs face up.
-    private void BeginGame()
+    public void BeginGame()
     {
         hintText.text = "Let's start the game!";
         firstTurn = true;
 
         CardReader.instance.UpdateGameLog("");
-        CardReader.instance.UpdateGameLog(player1.playerName + "'s " + player1.MCCard.CharName + ": " + player1.MCCard.CharTitle + " vs. "
-            + player2.playerName + "'s " + player2.MCCard.CharName + ": " + player2.MCCard.CharTitle + ".  Let's start the game!\n");
+        CardReader.instance.UpdateGameLog(agent1.PlayerName + "'s " + agent1.CardManager.MCCard.CharName + ": "  
+            + agent1.CardManager.MCCard.CharTitle + " vs. " + agent2.PlayerName + "'s " + agent2.CardManager.MCCard.CharName + ": " 
+            + agent2.CardManager.MCCard.CharTitle + ".  Let's start the game!\n");
         CardReader.instance.UpdateGameLog("The first player cannot draw a card or attack on the first turn.");
 
-        player1.AtStart();
-        player2.AtStart();
+        agent1.CardManager.AtStart();
+        agent2.CardManager.AtStart();
 
         BeginningPhase();
     }
 
-    private void BeginningPhase()
+    public void BeginningPhase()
     {
         currentPhase = CipherData.PhaseEnum.Beginning;
 
         //Sets the current turnPlayer
+        turnAgent = turnAgent.Opponent;
         turnPlayer = turnPlayer.Opponent;
-        ShowHand(turnPlayer);
+        ShowHand(turnAgent);
 
         //updates the Game Log
-        CardReader.instance.UpdateGameLog("\nBegin " + turnPlayer.playerName + "'s Turn:");
+        CardReader.instance.UpdateGameLog("\nBegin " + turnAgent.PlayerName + "'s Turn " + PlayerTurnCount + ":");
 
         //Checks the other player (who just finished their turn) for a forced march.
-        turnPlayer.Opponent.CheckForcedMarch();
+        turnAgent.Opponent.CardManager.CheckForcedMarch();
 
         //resets all turn player's "once per turn" ability flags and resets their active turn abilities.
-        turnPlayer.BeginTurnEvent.Invoke();
+        turnAgent.CardManager.BeginTurnEvent.Invoke();
 
         //untap all units on the active turn player's field.
-        turnPlayer.UntapAllUnits();
+        turnAgent.CardManager.UntapAllUnits();
 
         //draws card if not the first turn.
         if (!firstTurn)
         {
-            turnPlayer.Draw(1);
+            turnAgent.CardManager.Draw(1);
+            turnCount += 0.5f;
         }
 
-        hintText.text = "Push the red button to proceed with " + turnPlayer.playerName + "'s turn.";
-
-        phaseButtonText.text = "Begin Bond Phase";
-
-        phaseButton.onClick.RemoveAllListeners();
-        phaseButton.onClick.AddListener(ContextMenu.instance.ClosePanel);
-        phaseButton.onClick.AddListener(BondPhase);
+        turnAgent.OnBeginningPhase();
     }
 
-    private void BondPhase()
+    public void BondPhase()
     {
         currentPhase = CipherData.PhaseEnum.Bond;
         cardBonded = false;
-        CardReader.instance.UpdateGameLog("\nBegin " + turnPlayer.playerName +"'s Bond Phase:");
+        CardReader.instance.UpdateGameLog("\nBegin " + turnAgent.PlayerName +"'s Bond Phase:");
 
-        hintText.text = "Choose up to one card from your hand to place in the bond area.  Click the red button when you are finished.";
-        if (firstTurn)
-        {
-            //hintText.text += " In the beginning of the game, it's generally a good idea to bond non-main-character units with a high deployment cost.";
-        }
-
-        phaseButtonText.text = "End Bond Phase";
-
-        phaseButton.onClick.RemoveAllListeners();
-        phaseButton.onClick.AddListener(ContextMenu.instance.ClosePanel);
-        phaseButton.onClick.AddListener(DeploymentPhase);
+        turnAgent.OnBondPhase();
     }
 
-    private void DeploymentPhase()
+    public void DeploymentPhase()
     {
         currentPhase = CipherData.PhaseEnum.Deployment;
         bondDeployCount = 0;
-        CardReader.instance.UpdateGameLog("\nBegin " + turnPlayer.playerName + "'s Deployment Phase:");
+        CardReader.instance.UpdateGameLog("\nBegin " + turnAgent.PlayerName + "'s Deployment Phase:");
 
-        UpdateDeploymentHintText();
-
-        phaseButtonText.text = "Finish Deployment Phase";
-
-        phaseButton.onClick.RemoveAllListeners();
-        phaseButton.onClick.AddListener(ContextMenu.instance.ClosePanel);
-        phaseButton.onClick.AddListener(ActionPhase);
+        turnAgent.OnDeployPhase();
     }
 
-    public void UpdateDeploymentHintText ()
-    {
-        List<string> bondColors = turnPlayer.BondedColorNames;
-
-        hintText.text = "Choose cards from your hand to deploy to the field.  Click the red button when you are finished deploying units.  " +
-            "You have " + (turnPlayer.Bonds.Count - bondDeployCount) + " bonds remaining to use for deployment.  You may deploy the following colors: ";
-
-        //posts a well-formatted list of the colors on the face-up bonds to the hintText.
-        for (int i = 0; i < bondColors.Count - 1; i++)
-        {
-            hintText.text += bondColors[i] + ", ";
-        }
-        if (bondColors.Count > 0)
-        {
-            hintText.text += bondColors[bondColors.Count - 1];
-        }
-
-    }
-
-    private void ActionPhase()
+    public void ActionPhase()
     {
         currentPhase = CipherData.PhaseEnum.Action;
-        CardReader.instance.UpdateGameLog("\nBegin " + turnPlayer.playerName + "'s Action Phase:");
+        CardReader.instance.UpdateGameLog("\nBegin " + turnAgent.PlayerName + "'s Action Phase:");
 
+        /*
         hintText.text = "You may activate effects, move your units, and attack the opponent. You can do any of these actions in any order.";
 
         phaseButtonText.text = "End Turn";
@@ -716,13 +298,25 @@ public void ChooseMC(CardManager player)
         phaseButton.onClick.RemoveAllListeners();
         phaseButton.onClick.AddListener(ContextMenu.instance.ClosePanel);
         phaseButton.onClick.AddListener(EndPhase);
+        */
+
+        turnAgent.OnActionPhase();
     }
 
-    private void EndPhase()
+    public void EndPhase()
     {
         currentPhase = CipherData.PhaseEnum.End;
-        CardReader.instance.UpdateGameLog("\nBegin " + turnPlayer.playerName + "'s End Phase:");
+        CardReader.instance.UpdateGameLog("\nBegin " + turnAgent.PlayerName + "'s End Phase:");
+        
+        /*
+         * Any Skills that activate can do so, and any Skills that stop being active at the end of the turn now stop (such as Attack boosts).
+         * You may now proceed to your opponent’s turn, which shifts to your opponent's Beginning Phase.
+         */
 
+        turnAgent.CardManager.endTurnEvent.Invoke();
+        firstTurn = false;
+
+        /*
         hintText.text = "Many skill effects end in the End Phase. Once ready, push the button to begin the next player's turn.";
 
         phaseButtonText.text = "Begin next turn";
@@ -730,16 +324,13 @@ public void ChooseMC(CardManager player)
         phaseButton.onClick.RemoveAllListeners();
         phaseButton.onClick.AddListener(ContextMenu.instance.ClosePanel);
         phaseButton.onClick.AddListener(BeginningPhase);
-
-        /*
-         * Any Skills that activate can do so, and any Skills that stop being active at the end of the turn now stop (such as Attack boosts).
-         * You may now proceed to your opponent’s turn, which shifts to your opponent's Beginning Phase.
-         */
-
-        turnPlayer.endTurnEvent.Invoke();
-        firstTurn = false;
+        */
+        turnAgent.OnEndPhase();
     }
 
+    /*
+     * These two methods were the old attack architechture.  This has been streamlined by decision maker type.
+     * 
     //This method calls the CardPicker to choose which of the opponent's cards will be attacked.
     //It is not binding as you may choose 0 targets for the attack which cancels the action.
     public void AimAttack(BasicCard attacker)
@@ -747,8 +338,10 @@ public void ChooseMC(CardManager player)
         //Save the attacking card for the method called after the choice.
         currentAttacker = attacker;
 
-        //choose an enemy to be attacked.
+        //have the DecisionMaker choose an enemy to be attacked.
+        turnAgent.ChooseAttackTarget();
 
+        /*
         //This sets up the method to call after the CardPicker finishes.
         MyCardListEvent eventToCall = new MyCardListEvent();
         eventToCall.AddListener(DeclareAttack);
@@ -767,10 +360,11 @@ public void ChooseMC(CardManager player)
         CardPickerWindow cardPicker = CardPickerWindow.Instance();
 
         cardPicker.ChooseCards(details);
+ 
     }
 
     //This is the method that actually processes the initiation of the attack.
-    private void DeclareAttack(List<BasicCard> list)
+    public void DeclareAttack(List<BasicCard> list)
     {
         //Only proceed if there is actually a target for the attack.
         if (list.Count > 0)
@@ -780,14 +374,14 @@ public void ChooseMC(CardManager player)
             currentDefender = list[0];
 
             //Tap the attacking card.
-            currentAttacker.Tap();
+            CurrentAttacker.Tap();
 
-            CardReader.instance.UpdateGameLog("\n" + turnPlayer.playerName + "'s " + currentAttacker.CharName + " attacks " 
-                + turnPlayer.Opponent.playerName + "'s " + currentDefender.CharName + "!");
+            CardReader.instance.UpdateGameLog("\n" + turnAgent.PlayerName + "'s " + CurrentAttacker.CharName + " attacks " 
+                + turnAgent.Opponent.PlayerName + "'s " + CurrentDefender.CharName + "!");
 
             //reset the battleModifiers that affect attack.
-            currentAttacker.battleModifier = 0;
-            currentDefender.battleModifier = 0;
+            CurrentAttacker.battleModifier = 0;
+            CurrentDefender.battleModifier = 0;
 
             //Once an attack is declared, any AUTO or TRIGGER skills that activate upon attacking go here.
             //These may need to be separated out into small methods of their own.  We'll see as this gets expanded.
@@ -797,10 +391,21 @@ public void ChooseMC(CardManager player)
             //Feeding 'true' represents attacking.
             CurrentAttacker.DeclareAttackEvent.Invoke(true);
 
-            //Then the Opponent's skills activate after the player's again in the order the active player chooses (I assume).
+            //Then the Opponent's skills activate after the player's in the order the opponent chooses (whoever controls the cards chooses the order their skills activate).
             //Feeding 'false' represents defending.
             CurrentDefender.DeclareAttackEvent.Invoke(false);
 
+
+            /*Update the skills above after handling the core attack logic.
+             * 
+             * For now, proceed with the support logic and update as appropriate.
+             * 
+
+
+
+            //HUMAN PAUSE
+            //Candidate to adjust the attack skill sequence into a coroutine.
+            //Can we use a "waitForHuman" bool which flips true and false in the coroutine?
             //Once skills have been activated, supports are rolled.  This is processed in another method.
             hintText.text = "Once ready, push the button to continue the attack and reveal support cards.";
 
@@ -815,32 +420,85 @@ public void ChooseMC(CardManager player)
             currentAttacker = null;
         }
     }
+    
+         */
+
+
+    //This method allows a Decision maker to start a battle by declaring an attacking unit and the target/defender. 
+    public void StartBattle(BasicCard attacker, BasicCard defender)
+    {
+        inCombat = true;
+
+        currentAttacker = attacker;
+        currentDefender = defender;
+
+        //Tap the attacking card.
+        CurrentAttacker.Tap();
+
+        CardReader.instance.UpdateGameLog("\n" + turnAgent.PlayerName + "'s " + CurrentAttacker.CharName + " attacks "
+            + turnAgent.Opponent.PlayerName + "'s " + CurrentDefender.CharName + "!");
+
+        //reset the battleModifiers that affect attack.
+        CurrentAttacker.battleModifier = 0;
+        CurrentDefender.battleModifier = 0;
+
+        //Once an attack is declared, any AUTO or TRIGGER skills that activate upon attacking go here.
+        //These may need to be separated out into small methods of their own.  We'll see as this gets expanded.
+
+        //NOTE: Having these sequential may mean that the effects/called windows overwrite each other.  Be careful when adding events here!
+        //First the player's skills activate in the order the player chooses. (:/)
+        //Feeding 'true' represents attacking.
+        CurrentAttacker.DeclareAttackEvent.Invoke(true);
+
+        //Then the Opponent's skills activate after the player's in the order the opponent chooses (whoever controls the cards chooses the order their skills activate).
+        //Feeding 'false' represents defending.
+        CurrentDefender.DeclareAttackEvent.Invoke(false);
+
+
+        /*Update the skills above after handling the core attack logic.
+         * 
+         * For now, proceed with the support logic and update as appropriate.
+         * 
+         */
+
+
+        //HUMAN PAUSE
+        //Candidate to adjust the attack skill sequence into a coroutine.
+        //Can we use a "waitForHuman" bool which flips true and false in the coroutine?
+        //Once skills have been activated, supports are rolled.  This is processed in another method.
+        hintText.text = "Once ready, push the button to continue the attack and reveal support cards.";
+
+        phaseButtonText.text = "Reveal Supports";
+
+        phaseButton.onClick.RemoveAllListeners();
+        phaseButton.onClick.AddListener(SupportRoll);
+    }
 
     //This method takes care of the high level support roll for both players as well as checking for self-supports.
     //It currently also adds the support value to the cards for attack calculation.
     private void SupportRoll()
     {
-        turnPlayer.PlaySupportCard();
+        turnAgent.CardManager.PlaySupportCard();
         
         //Check player for self-supports
-        if (turnPlayer.SupportCard != null)
+        if (turnAgent.CardManager.SupportCard != null)
         {
-            if (turnPlayer.SupportCard.CompareNames(currentAttacker))
+            if (turnAgent.CardManager.SupportCard.CompareNames(CurrentAttacker))
             {
-                CardReader.instance.UpdateGameLog("Due to a self-support, " + turnPlayer.playerName + "'s support draw fails!");
-                turnPlayer.DiscardSupport();
+                CardReader.instance.UpdateGameLog("Due to a self-support, " + turnAgent.PlayerName + "'s support draw fails!");
+                turnAgent.CardManager.DiscardSupport();
             }
         }
 
-        turnPlayer.Opponent.PlaySupportCard();
+        turnAgent.Opponent.CardManager.PlaySupportCard();
 
         //Check opponent for self-supports
-        if (turnPlayer.Opponent.SupportCard != null)
+        if (turnAgent.Opponent.CardManager.SupportCard != null)
         {
-            if (turnPlayer.Opponent.SupportCard.CompareNames(currentDefender))
+            if (turnAgent.Opponent.CardManager.SupportCard.CompareNames(CurrentDefender))
             {
-                CardReader.instance.UpdateGameLog("Due to a self-support, " + turnPlayer.Opponent.playerName + "'s support draw fails!");
-                turnPlayer.Opponent.DiscardSupport();
+                CardReader.instance.UpdateGameLog("Due to a self-support, " + turnAgent.Opponent.PlayerName + "'s support draw fails!");
+                turnAgent.Opponent.CardManager.DiscardSupport();
             }
         }
 
@@ -850,9 +508,12 @@ public void ChooseMC(CardManager player)
         //First the player's skills activate in the order the player chooses. (:/)
         CurrentAttacker.BattleSupportEvent.Invoke();
 
-        //Then the Opponent's skills activate after the player's again in the order the active player chooses (I assume).
+        //Then the Opponent's skills activate after the player's again in the order the opponent chooses.
         CurrentDefender.BattleSupportEvent.Invoke();
 
+        //HUMAN PAUSE
+        //This is necessary due to the support skill logic
+        //Candidate for coroutine transformation.
         hintText.text = "Once ready, push the button to begin resolving support skills.";
 
         phaseButtonText.text = "Resolve Support Skills";
@@ -864,9 +525,9 @@ public void ChooseMC(CardManager player)
     //Activates the attacker's support skills in the order the active player chooses.
     private void ActivateAttackerSupport()
     {
-        if (turnPlayer.SupportCard != null)
+        if (turnAgent.CardManager.SupportCard != null)
         {
-            turnPlayer.SupportCard.ActivateAttackSupportSkill();
+            turnAgent.CardManager.SupportCard.ActivateAttackSupportSkill();
         }
         else
         {
@@ -874,12 +535,12 @@ public void ChooseMC(CardManager player)
         }
     }
 
-    //The defender's support skills activate after the attackers's again in the order the active player chooses (I assume).
+    //The defender's support skills activate after the attackers's in the order the card's controller chooses.
     public void ActivateDefenderSupport()
     {
-        if (turnPlayer.Opponent.SupportCard != null)
+        if (turnAgent.Opponent.CardManager.SupportCard != null)
         {
-            turnPlayer.Opponent.SupportCard.ActivateDefenseSupportSkill();
+            turnAgent.Opponent.CardManager.SupportCard.ActivateDefenseSupportSkill();
         }
         else
         {
@@ -903,18 +564,21 @@ public void ChooseMC(CardManager player)
     public void AddSupportValues()
     {
         //Support values get added to each respective characters' battleModifier values.
-        if (turnPlayer.SupportCard != null)
+        if (turnAgent.CardManager.SupportCard != null)
         {
-            currentAttacker.battleModifier += turnPlayer.SupportCard.CurrentSupportValue;
+            CurrentAttacker.battleModifier += turnAgent.CardManager.SupportCard.CurrentSupportValue;
         }
 
-        if (turnPlayer.Opponent.SupportCard != null)
+        if (turnAgent.Opponent.CardManager.SupportCard != null)
         {
-            currentDefender.battleModifier += turnPlayer.Opponent.SupportCard.CurrentSupportValue;
+            CurrentDefender.battleModifier += turnAgent.Opponent.CardManager.SupportCard.CurrentSupportValue;
         }
 
         DisplayAttackValues();
 
+        //HUMAN PAUSE
+        //This is another human pause point where the human players need to assess the situation and confirm if they will be doing a
+        //critical hit or an evade.  They just need to survey the battle.
         hintText.text = "Once ready, push the button to resolve potential critical hits and evasions.";
 
         phaseButtonText.text = "Continue Battle";
@@ -924,12 +588,12 @@ public void ChooseMC(CardManager player)
     }
 
     //Displays the current attack values on the Game Log.
-    private void DisplayAttackValues()
+    public void DisplayAttackValues()
     {
         Debug.Log("The current attack is " + CurrentAttacker.CharName + "(" + CurrentAttacker.TotalAttack + ") vs. "
             + CurrentDefender.CharName + "(" + CurrentDefender.TotalAttack + ").");
-        CardReader.instance.UpdateGameLog("The current battle state is " + turnPlayer.playerName + "'s " + CurrentAttacker.CharName 
-            + " with " + CurrentAttacker.TotalAttack + " attack vs. " + turnPlayer.Opponent.playerName + "'s " 
+        CardReader.instance.UpdateGameLog("The current battle state is " + turnAgent.PlayerName + "'s " + CurrentAttacker.CharName 
+            + " with " + CurrentAttacker.TotalAttack + " attack vs. " + turnAgent.Opponent.PlayerName + "'s " 
             + CurrentDefender.CharName + " with " + CurrentDefender.TotalAttack + " attack.");
     }
 
@@ -937,29 +601,9 @@ public void ChooseMC(CardManager player)
     private void CheckCriticalAndEvasion()
     {
         //Check if the player can perform a critical hit
-        if (canAttackerCrit && turnPlayer.Hand.Exists(x => x.CompareNames(currentAttacker, true)))
+        if (canAttackerCrit && turnAgent.CardManager.Hand.Exists(x => x.CompareNames(CurrentAttacker)))
         {
-            //give the player the choice to perform a critical hit. Call a dialogue box.
-            DialogueWindowDetails details = new DialogueWindowDetails
-            {
-                windowTitleText = turnPlayer.playerName + "'s Critical Hit",
-                questionText = turnPlayer.playerName + ": Discard a " + currentAttacker.CharName + " to activate a critical hit and double your attack power?",
-                button1Details = new DialogueButtonDetails
-                {
-                    buttonText = "Yes",
-                    buttonAction = () => { CriticalHitChoice(); }
-                },
-                button2Details = new DialogueButtonDetails
-                {
-                    buttonText = "No",
-                    buttonAction = () => { EvadeChoice(); }
-                }
-            };
-
-            //Debug.Log("We made it here in Support Roll.");
-
-            DialogueWindow dialogueWindow = DialogueWindow.Instance();
-            dialogueWindow.MakeChoice(details);
+            turnAgent.DecideToCrit();
         }
         else            //The player does not have the appropriate cards in hand to perform a critical hit or has been prevented by a skill.
         {
@@ -967,70 +611,7 @@ public void ChooseMC(CardManager player)
         }
     }
 
-    //This method calls the CardPicker to determine which card in the hand should be discarded for the critical hit.
-    private void CriticalHitChoice()
-    {
-        //find the cards in the hand that have the same name as the attacking unit.
-        List<BasicCard> possibleDiscards = new List<BasicCard>(turnPlayer.Hand.Count);
-        for (int i = 0; i < turnPlayer.Hand.Count; i++)
-        {
-            if (turnPlayer.Hand[i].CompareNames(currentAttacker, true))
-            {
-                possibleDiscards.Add(turnPlayer.Hand[i]);
-            }
-        }
-
         /*
-         * Is not implemented as this makes the operation uncancelable...
-        //only calls the CardPicker if necessary (there is more than one possible discard).
-        if (possibleDiscards.Count > 1)
-        {
-            //This sets up the method to call after the CardPicker finishes.
-            MyCardListEvent eventToCall = new MyCardListEvent();
-            eventToCall.AddListener(ActivateCriticalHit);
-
-            //makes the player choose another ally for the skill's effect.
-            CardPickerDetails details = new CardPickerDetails
-            {
-                cardsToDisplay = possibleDiscards,
-                numberOfCardsToPick = 1,
-                locationText = "Player's Hand",
-                instructionText = "Please choose one card to discard to activate " + currentAttacker.CharName + "'s critical hit.",
-                mayChooseLess = true,
-                effectToActivate = eventToCall
-            };
-
-            CardPickerWindow cardPicker = CardPickerWindow.Instance();
-
-            cardPicker.ChooseCards(details);
-        }
-        else            //There is only one card that can be discarded.
-        {
-            ActivateCriticalHit(possibleDiscards);
-        }
-        */
-
-        //This sets up the method to call after the CardPicker finishes.
-        MyCardListEvent eventToCall = new MyCardListEvent();
-        eventToCall.AddListener(ActivateCriticalHit);
-
-        //makes the player choose another ally for the skill's effect.
-        CardPickerDetails details = new CardPickerDetails
-        {
-            cardsToDisplay = possibleDiscards,
-            numberOfCardsToPick = 1,
-            locationText = turnPlayer.playerName + "'s Hand",
-            instructionText = turnPlayer.playerName + ": Please choose one card to discard to activate " + currentAttacker.CharName + "'s critical hit.",
-            mayChooseLess = true,
-            effectToActivate = eventToCall
-        };
-
-        CardPickerWindow cardPicker = CardPickerWindow.Instance();
-
-        cardPicker.ChooseCards(details);
-
-    }
-
     //Actually processes the critical hit.  Is semi-cancelable by not choosing any cards.
     private void ActivateCriticalHit(List<BasicCard> list)
     {
@@ -1045,6 +626,7 @@ public void ChooseMC(CardManager player)
         //Call the evade choice method for the opponent
         EvadeChoice();
     }
+    */
 
     //Evades can only be completed if the defending unit is going to be defeated.
     //The method only calls the choice if an evasion is possible.
@@ -1054,99 +636,14 @@ public void ChooseMC(CardManager player)
 
         if (canDefenderEvade && CurrentAttacker.TotalAttack >= CurrentDefender.TotalAttack)
         {
-            if (turnPlayer.Opponent.Hand.Exists(x => x.CompareNames(CurrentDefender, true)))
+            if (turnAgent.Opponent.CardManager.Hand.Exists(x => x.CompareNames(CurrentDefender)))
             {
-                //reveals the opponent's hand so that they can make an evasion choice
-                ShowHand(turnPlayer.Opponent);
-
-                hintText.text = turnPlayer.Opponent.playerName + ": Push the button to resolve your evasion.";
-
-                phaseButtonText.text = turnPlayer.Opponent.playerName + " Evade";
-
-                phaseButton.onClick.RemoveAllListeners();
-                phaseButton.onClick.AddListener(ChooseEvasion);
+                turnAgent.Opponent.DecideToEvade();
             }
             else
             {
                 BattleCalculation();
             }
-        }
-        else
-        {
-            BattleCalculation();
-        }
-    }
-
-    private void ChooseEvasion()
-    {
-        //give the player the choice to perform an evade. Call a dialogue box.
-        DialogueWindowDetails details = new DialogueWindowDetails
-        {
-            windowTitleText = turnPlayer.Opponent.playerName + "'s God-Speed Evasion",
-            questionText = turnPlayer.Opponent.playerName + ": Discard a " + CurrentDefender.CharName + " to activate a god-speed evasion?",
-            button1Details = new DialogueButtonDetails
-            {
-                buttonText = "Yes",
-                buttonAction = () => { ActivateEvasion(); }
-            },
-            button2Details = new DialogueButtonDetails
-            {
-                buttonText = "No",
-                buttonAction = () => { BattleCalculation(); }
-            }
-        };
-
-        DialogueWindow dialogueWindow = DialogueWindow.Instance();
-        dialogueWindow.MakeChoice(details);
-
-        //Debug.Log("Did the dialogue box actually get called?");
-
-        //return;
-        //Debug.Log("Will this mess up the logic?");
-    }
-
-    //This method calls the CardPicker to choose the card to discard for a god-speed evasion.
-    private void ActivateEvasion()
-    {
-        //find the cards in the hand that have the same name as the defending unit.
-        List<BasicCard> possibleDiscards = new List<BasicCard>(turnPlayer.Opponent.Hand.Count);
-        for (int i = 0; i < turnPlayer.Opponent.Hand.Count; i++)
-        {
-            if (turnPlayer.Opponent.Hand[i].CompareNames(CurrentDefender, true))
-            {
-                possibleDiscards.Add(turnPlayer.Opponent.Hand[i]);
-            }
-        }
-
-        //This sets up the method to call after the CardPicker finishes.
-        MyCardListEvent eventToCall = new MyCardListEvent();
-        eventToCall.AddListener(ResolveEvasion);
-
-        //makes the player choose a card to discard to activate the god-speed evasion.
-        CardPickerDetails details = new CardPickerDetails
-        {
-            cardsToDisplay = possibleDiscards,
-            numberOfCardsToPick = 1,
-            locationText = turnPlayer.Opponent.playerName + "'s Hand",
-            instructionText = turnPlayer.Opponent.playerName + ": Choose one card to discard to activate " + CurrentDefender.CharName + "'s god-speed evasion.",
-            mayChooseLess = true,
-            effectToActivate = eventToCall
-        };
-
-        CardPickerWindow cardPicker = CardPickerWindow.Instance();
-
-        cardPicker.ChooseCards(details);
-    }
-
-    //Actually processes the god-speed evasion.  Is semi-cancelable by not choosing any cards.
-    private void ResolveEvasion(List<BasicCard> list)
-    {
-        if (list.Count > 0)
-        {
-            CardReader.instance.UpdateGameLog(turnPlayer.Opponent.playerName + "'s " + CurrentDefender.CharName + " activates a god-speed evasion!");
-            turnPlayer.Opponent.DiscardCardFromHand(list[0]);
-            //Opponent.DefenderEvaded();        //I don't think this call is actually necessary at this point yet.
-            EndBattle();
         }
         else
         {
@@ -1164,30 +661,30 @@ public void ChooseMC(CardManager player)
     //This is the BattleCalculation step that actually evaluates the results of the attack.
     public void BattleCalculation()
     {
-        CardReader.instance.UpdateGameLog("The final battle state is " + turnPlayer.playerName + "'s " + CurrentAttacker.CharName
-            + " with " + CurrentAttacker.TotalAttack + " attack vs. " + turnPlayer.Opponent.playerName + "'s "
+        CardReader.instance.UpdateGameLog("The final battle state is " + turnAgent.PlayerName + "'s " + CurrentAttacker.CharName
+            + " with " + CurrentAttacker.TotalAttack + " attack vs. " + turnAgent.Opponent.PlayerName + "'s "
             + CurrentDefender.CharName + " with " + CurrentDefender.TotalAttack + " attack.");
 
         //Check to see if the attack was strong enough to defeat the defender.  Ties go to the aggressor.
         if (CurrentAttacker.TotalAttack >= CurrentDefender.TotalAttack)
         {
-            CardReader.instance.UpdateGameLog(turnPlayer.Opponent.playerName + "'s " + CurrentDefender.CharName + " is defeated!");
+            CardReader.instance.UpdateGameLog(turnAgent.Opponent.PlayerName + "'s " + CurrentDefender.CharName + " is defeated!");
 
-            if (CurrentDefender == turnPlayer.Opponent.MCCard)           //The defending card was the MC.  Take at least one orb or win the game!
+            if (CurrentDefender == turnAgent.Opponent.CardManager.MCCard)           //The defending card was the MC.  Take at least one orb or win the game!
             {
-                turnPlayer.Opponent.BreakOrbs(numOrbsToBreak);
+                turnAgent.Opponent.CardManager.BreakOrbs(numOrbsToBreak);
             }
             else                //The defending card isn't the lord.
             {
                 //NOTE: I may need to add a tag here for skill effects to say that the card was discarded as a result of battle.
-                turnPlayer.Opponent.DiscardCardFromField(CurrentDefender);
+                turnAgent.Opponent.CardManager.DiscardCardFromField(CurrentDefender);
             }
 
             //Skills which activate when an enemy is defeated activate here.
             battleDestructionTriggerTracker.CheckTrigger(CurrentDefender);
         }
         else
-            CardReader.instance.UpdateGameLog(turnPlayer.Opponent.playerName + "'s " + CurrentDefender.CharName + " resists the attack!");
+            CardReader.instance.UpdateGameLog(turnAgent.Opponent.PlayerName + "'s " + CurrentDefender.CharName + " resists the attack!");
 
         EndBattle();
     }
@@ -1196,17 +693,17 @@ public void ChooseMC(CardManager player)
     public void EndBattle()
     {
         //Show the turn Player's hand once more after the evasion has been processed. 
-        ShowHand(turnPlayer);
+        ShowHand(turnAgent);
 
         //Discard support cards if any.
-        if (turnPlayer.SupportCard != null)
+        if (turnAgent.CardManager.SupportCard != null)
         {
-            turnPlayer.DiscardSupport();
+            turnAgent.CardManager.DiscardSupport();
         }
 
-        if (turnPlayer.Opponent.SupportCard != null)
+        if (turnAgent.Opponent.CardManager.SupportCard != null)
         {
-            turnPlayer.Opponent.DiscardSupport();
+            turnAgent.Opponent.CardManager.DiscardSupport();
         }
 
         inCombat = false;
@@ -1230,10 +727,11 @@ public void ChooseMC(CardManager player)
         canAttackerCrit = true;
 
         //Check if there was a forced march because of the battle.
-        turnPlayer.Opponent.CheckForcedMarch();
+        turnAgent.Opponent.CardManager.CheckForcedMarch();
 
         CardReader.instance.UpdateGameLog("");
 
+        /*
         //reset the hint text and phase button at the end of the battle.
         hintText.text = "You may activate effects, move your units, and attack the opponent.  You can do any of these actions in any order.";
 
@@ -1242,19 +740,23 @@ public void ChooseMC(CardManager player)
         phaseButton.onClick.RemoveAllListeners();
         phaseButton.onClick.AddListener(ContextMenu.instance.ClosePanel);
         phaseButton.onClick.AddListener(EndPhase);
+        */
+
+        //exit the battle proceedings and allow the turn agent to choose their next action.
+        turnAgent.OnActionPhase();
     }
 
     //This method declares the winner of the game!
     //NOTE: This is still a work in progress.
-    public void EndGame(CardManager winner)
+    public void EndGame(DecisionMaker winner)
     {
-        CardReader.instance.UpdateGameLog(winner.playerName + " wins the game!");
+        CardReader.instance.UpdateGameLog(winner.PlayerName + " wins the game!");
 
         //Call a dialogue box to announce the winner.
         DialogueWindowDetails details = new DialogueWindowDetails
         {
             windowTitleText = "End Game",
-            questionText = winner.playerName + " has won!  Would you like to play again?",
+            questionText = winner.PlayerName + " has won!  Would you like to play again?",
             button1Details = new DialogueButtonDetails
             {
                 buttonText = "Yes",
@@ -1298,7 +800,34 @@ public void ChooseMC(CardManager player)
         DeckList testDeckList = new DeckList();
         //Debug.Log(testDeckList + " has been created.");
 
+        //AI Decklist Test - Cain
+        testDeckList.DefaultMC = "B01-008N";                        //Cain 1
+
+        //Easy to add
+        testDeckList.deckListDictionary.Add("B01-008N", 4);         //Cain 1
+        testDeckList.deckListDictionary.Add("B01-010N", 4);         //Abel 1
+        testDeckList.deckListDictionary.Add("B01-019N", 4);         //Bord 1
+        testDeckList.deckListDictionary.Add("B01-020N", 4);         //Cord 1
+        testDeckList.deckListDictionary.Add("S01-003ST", 4);        //Jagen 3
+
         
+        //Medium to implement
+        testDeckList.deckListDictionary.Add("B01-007R", 4);         //Cain 3
+        testDeckList.deckListDictionary.Add("B01-009R", 4);         //Abel 3
+        testDeckList.deckListDictionary.Add("B01-036N", 4);         //Linde 1
+        testDeckList.deckListDictionary.Add("B01-014N", 4);         //Gordin 1
+        testDeckList.deckListDictionary.Add("B01-006HN", 4);        //Caeda 1
+        
+        
+        //Harder to implement
+        testDeckList.deckListDictionary.Add("S01-002ST", 4);        //Caeda 3
+        testDeckList.deckListDictionary.Add("B01-013HN", 2);        //Gordin 3
+        testDeckList.deckListDictionary.Add("B01-021HN", 4);        //Barst 2
+
+
+        /*
+         * War of Shadows Starter Deck
+         * 
         testDeckList.deckListDictionary.Add("S01-001ST", 4);        //Marth 4
         testDeckList.deckListDictionary.Add("S01-002ST", 2);        //Caeda 3
         testDeckList.deckListDictionary.Add("S01-003ST", 2);        //Jagen 3
@@ -1333,6 +862,7 @@ public void ChooseMC(CardManager player)
         //testDeckList.deckListDictionary.Add("B01-056HN", 2);        //Lucina 1
 
         testDeckList.DefaultMC = "B01-003HN";
+        */
 
         /*
         foreach (KeyValuePair<string, int> kvp in testDeckList.deckListDictionary)
@@ -1343,6 +873,8 @@ public void ChooseMC(CardManager player)
             }
         }
         */
+
+
 
         return testDeckList;
     }
@@ -1373,9 +905,11 @@ public void ChooseMC(CardManager player)
         }
     }
 
+    /*
     //Instantiates the card gameobjects listed in a decklist and returns a list of those objects.
     //NOTE: The method only instantiates cards at their default location.  This will need to be changed later to happen offscreen.
-    private List<BasicCard> CreateDeck(DeckList decklist)
+    //This method must be in the GameManager since only Objects can instantiate other Objects.
+    public List<BasicCard> CreateDeck(DeckList decklist)
     {
         List<BasicCard> deck = new List<BasicCard>();
 
@@ -1386,10 +920,12 @@ public void ChooseMC(CardManager player)
                 //Debug.Log("Trying to load " + kvp.Key + " from Resources.");
                 GameObject loadedObject = Instantiate(Resources.Load(kvp.Key)) as GameObject;
                 //Debug.Log(loadedObject + " has been successfully loaded.");
-
+                
                 BasicCard cardToAdd = loadedObject.GetComponent<BasicCard>();
                 deck.Add(cardToAdd);
                 //Debug.Log(cardToAdd.ToString() + " has been added to the deck.");
+
+                //RectTransform cardTransform = cardToAdd.gameObject.transform as RectTransform;
             }
         }
 
@@ -1397,6 +933,8 @@ public void ChooseMC(CardManager player)
 
         return deck;
     }
+    */
+
 
     private void SaveDeckList (DeckList deckList, string deckFileName)
     {

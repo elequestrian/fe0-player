@@ -17,7 +17,7 @@ public static class AbilitySupport
             GameManager.instance.numOrbsToBreak = 2;
             
             //updates the card reader.
-            CardReader.instance.UpdateGameLog(GameManager.instance.CurrentAttacker.Owner.playerName + "'s supported " 
+            CardReader.instance.UpdateGameLog(GameManager.instance.CurrentAttacker.DM.PlayerName + "'s supported " 
                 + GameManager.instance.CurrentAttacker.Owner.SupportCard.CharName + " activates Hero Emblem. " 
                 + GameManager.instance.CurrentAttacker.CharName + "'s attack will destroy 2 orbs!");
 
@@ -42,65 +42,19 @@ public static class AbilitySupport
     {
         //Checks that there is more than one other ally besides the attacking card in play.
         if (GameManager.instance.CurrentAttacker.OtherAllies.Count > 0)
-        {
-            //check if the player wants to activate this skill.  Call a dialogue box.
-            DialogueWindowDetails details = new DialogueWindowDetails
-            {
-                windowTitleText = "Elysian Emblem",
-                questionText = "Would you like to activate the supported " 
-                + GameManager.instance.CurrentAttacker.Owner.SupportCard.CharName + "'s Elysian Emblem?" +
-                "\n\n[ATK] Elysian Emblem [SUPP] Choose 1 ally other than your attacking unit. You may move that ally.",
-                button1Details = new DialogueButtonDetails
-                {
-                    buttonText = "Yes",
-                    buttonAction = () => { TargetElysianEmblem(); }
-                },
-                button2Details = new DialogueButtonDetails
-                {
-                    buttonText = "No",
-                    buttonAction = () => { GameManager.instance.ActivateDefenderSupport(); }
-                }
-            };
-
-            DialogueWindow dialogueWindow = DialogueWindow.Instance();
-            dialogueWindow.MakeChoice(details);
-        }
+            GameManager.instance.CurrentAttacker.DM.TryElysianEmblem();
         else
-        {
             GameManager.instance.ActivateDefenderSupport();
-        }
     }
 
-    //Choose a friendly target for Elysian Emblem.  Can be soft canceled.
-    private static void TargetElysianEmblem()
-    {
-        //This sets up the method to call after the CardPicker finishes.
-        MyCardListEvent eventToCall = new MyCardListEvent();
-        eventToCall.AddListener(ActivateElysianEmblem);
-
-        //makes the player choose another ally for the skill's effect.
-        CardPickerDetails details = new CardPickerDetails
-        {
-            cardsToDisplay = GameManager.instance.CurrentAttacker.OtherAllies,
-            numberOfCardsToPick = 1,
-            locationText = GameManager.instance.CurrentAttacker.Owner.playerName + "'s Field",
-            instructionText = "Please choose one ally to move using Elysian Emblem.",
-            mayChooseLess = true,
-            effectToActivate = eventToCall
-        };
-
-        CardPickerWindow cardPicker = CardPickerWindow.Instance();
-
-        cardPicker.ChooseCards(details);
-    }
-
-    //Actually moves the chosen unit.  Can be soft canceled.
-    private static void ActivateElysianEmblem(List<BasicCard> list)
+    //Actually activates Elysian Emblem.  Can be soft canceled.
+    //[ATK] Elysian Emblem [SUPP] Choose 1 ally other than your attacking unit. You may move that ally.
+    public static void ActivateElysianEmblem(List<BasicCard> list)
     {
         if (list.Count > 0)
         {
             //updates the card reader.
-            CardReader.instance.UpdateGameLog(GameManager.instance.CurrentAttacker.Owner.playerName + "'s supported "
+            CardReader.instance.UpdateGameLog(GameManager.instance.CurrentAttacker.DM.PlayerName + "'s supported "
                 + GameManager.instance.CurrentAttacker.Owner.SupportCard.CharName + " activates Elysian Emblem.");
 
             GameManager.instance.CurrentAttacker.Owner.MoveCard(list[0]);
@@ -116,7 +70,7 @@ public static class AbilitySupport
         GameManager.instance.CurrentAttacker.attackModifier += 20;
 
         //reports the boost
-        CardReader.instance.UpdateGameLog(GameManager.instance.CurrentAttacker.Owner.playerName + "'s supported "
+        CardReader.instance.UpdateGameLog(GameManager.instance.CurrentAttacker.DM.PlayerName + "'s supported "
                 + GameManager.instance.CurrentAttacker.Owner.SupportCard.CharName + " activates Attack Emblem. "
                 + GameManager.instance.CurrentAttacker.CharName + "'s attack is boosted by +20 for this battle!");
         GameManager.instance.CurrentAttacker.AddToSkillChangeTracker("Attack Emblem providing +20 attack.");
@@ -140,7 +94,7 @@ public static class AbilitySupport
         GameManager.instance.CurrentDefender.attackModifier += 20;
 
         //reports the boost
-        CardReader.instance.UpdateGameLog(GameManager.instance.CurrentDefender.Owner.playerName + "'s supported "
+        CardReader.instance.UpdateGameLog(GameManager.instance.CurrentDefender.DM.PlayerName + "'s supported "
                 + GameManager.instance.CurrentDefender.Owner.SupportCard.CharName + " activates Defense Emblem. "
                 + GameManager.instance.CurrentDefender.CharName + "'s attack is boosted by +20 for this battle!");
         GameManager.instance.CurrentDefender.AddToSkillChangeTracker("Defense Emblem providing +20 attack.");
@@ -201,9 +155,9 @@ public static class AbilitySupport
         GameManager.instance.PreventCritical();
 
         //reports the effect
-        CardReader.instance.UpdateGameLog(GameManager.instance.CurrentDefender.Owner.playerName + "'s supported "
+        CardReader.instance.UpdateGameLog(GameManager.instance.CurrentDefender.DM.PlayerName + "'s supported "
                 + GameManager.instance.CurrentDefender.Owner.SupportCard.CharName + " activates Miracle Emblem. "
-                + GameManager.instance.CurrentAttacker.Owner.playerName + "'s attacking " +
+                + GameManager.instance.CurrentAttacker.DM.PlayerName + "'s attacking " +
                 GameManager.instance.CurrentAttacker.CharName + " cannot perform a Critical Hit in this battle!");
 
         GameManager.instance.CurrentAttacker.AddToSkillChangeTracker("Miracle Emblem prevents Critical Hits in this battle.");
@@ -226,42 +180,27 @@ public static class AbilitySupport
     //[ATK] Magic Emblem [SUPP] Draw 1 card. Choose 1 card from your hand, and send it to the Retreat Area.
     public static void MagicEmblem()
     {
-        //reports the boost
-        CardReader.instance.UpdateGameLog(GameManager.instance.CurrentAttacker.Owner.playerName + "'s supported "
+        //reports the skill
+        CardReader.instance.UpdateGameLog(GameManager.instance.CurrentAttacker.DM.PlayerName + "'s supported "
                 + GameManager.instance.CurrentAttacker.Owner.SupportCard.CharName + " activates Magic Emblem.");
 
         //Draw.
         GameManager.instance.CurrentAttacker.Owner.Draw(1);
 
-        //This sets up the method to call after the CardPicker finishes setting up the discard choice.
-        MyCardListEvent eventToCall = new MyCardListEvent();
-        eventToCall.AddListener(FinishMagicEmblem);
+        //Set up the callback to ensure that we continue once we choose a card to discard.
+        GameManager.instance.CurrentAttacker.Owner.FinishDiscardEvent.AddListener(FinishMagicEmblem);
 
-        //makes the player choose one card to discard from their hand.
-        CardPickerDetails details = new CardPickerDetails
-        {
-            cardsToDisplay = GameManager.instance.CurrentAttacker.Owner.Hand,
-            numberOfCardsToPick = 1,
-            locationText = GameManager.instance.CurrentAttacker.Owner.playerName + "'s Hand",
-            instructionText = "Please choose one card to discard for Magic Emblem. (The final card in the list was just drawn.)",
-            mayChooseLess = false,
-            effectToActivate = eventToCall
-        };
-
-        CardPickerWindow.Instance().ChooseCards(details);
+        //Have the decision maker choose a card to discard.
+        GameManager.instance.CurrentAttacker.DM.ChooseCardsToDiscardFromHand(GameManager.instance.CurrentAttacker.Owner.SupportCard, 
+            GameManager.instance.CurrentAttacker.Owner.Hand, 1, 
+            "[ATK] Magic Emblem [SUPP] Draw 1 card. Choose 1 card from your hand, and send it to the Retreat Area.");
     }
 
     //This method receives the list containing the chosen card to discard and actually discards it, completing the Magic Emblem effect.
-    private static void FinishMagicEmblem(List<BasicCard> list)
+    private static void FinishMagicEmblem()
     {
-        if (list.Count != 1)
-        {
-            Debug.LogError("FinishMagicEmblem() was sent " + list.Count + " cards in a list instead of the assumed one. Investigate!");
-        }
-        else
-        {
-            GameManager.instance.CurrentAttacker.Owner.DiscardCardFromHand(list[0]);
-        }
+        //Remove the callback.
+        GameManager.instance.CurrentAttacker.Owner.FinishDiscardEvent.RemoveListener(FinishMagicEmblem);
 
         //continues the battle logic
         GameManager.instance.ActivateDefenderSupport();

@@ -83,7 +83,7 @@ public class B01N003 : BasicCard {
         {
             cardsToDisplay = tappableCards,
             numberOfCardsToPick = 1,
-            locationText = Owner.playerName + "'s Field",
+            locationText = DM.PlayerName + "'s Field",
             instructionText = "Please choose one other unit to tap to activate " + CharName + "'s Young Hero skill.\n\n" +
             "Young Hero [ACT] [TAP, Tap 1 other ally] Choose 1 enemy, and move them. This skill cannot be used unless this unit is in the Front Line.",
             mayChooseLess = true,
@@ -117,7 +117,7 @@ public class B01N003 : BasicCard {
             {
                 cardsToDisplay = Owner.Opponent.FieldCards,
                 numberOfCardsToPick = 1,
-                locationText = Owner.Opponent.playerName + "'s Field",
+                locationText = DM.Opponent.PlayerName + "'s Field",
                 instructionText = "Please choose one unit to move with Marth's Young Hero.",
                 mayChooseLess = false,
                 effectToActivate = eventToCall
@@ -131,7 +131,7 @@ public class B01N003 : BasicCard {
 
     private void YoungHero(List<BasicCard> list)
     {
-        CardReader.instance.UpdateGameLog(Owner.playerName + " activates Marth's Young Hero skill to move " + Owner.Opponent.playerName
+        CardReader.instance.UpdateGameLog(DM.PlayerName + " activates Marth's Young Hero skill to move " + DM.Opponent.PlayerName
                     + "'s " + list[0].CharName + "!");
         list[0].Owner.MoveCard(list[0]);
     }

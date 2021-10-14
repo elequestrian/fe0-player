@@ -21,6 +21,7 @@ MonoBehaviour:
     gains +30 attack.
   - '[ATK] Attack Emblem [SUPP] Until the end of this combat, your attacking unit
     gains +20 attack.'
+  skillTypes: 010000000000000000000000000000
   charName: Cain
   classTitle: Cavalier
   deploymentCost: 1

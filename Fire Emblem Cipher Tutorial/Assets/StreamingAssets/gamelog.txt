@@ -1,2 +1,588 @@
 Welcome to the Fire Emblem 0 Player!
 
+Player 1 draws 6 cards.
+AI Player draws 6 cards.
+
+Player 1's Marth: Altean Prince vs. AI Player's Cain: The Red Knight.  Let's start the game!
+
+The first player cannot draw a card or attack on the first turn.
+
+Begin AI Player's Turn 1:
+
+Begin AI Player's Bond Phase:
+AI Player places Gordin: Bow Knight of the League in the Bond Area faceup.
+
+Begin AI Player's Deployment Phase:
+AI Player deploys Cord: Talysian Axeman to the Front Line!
+Cord's Fighter's Expertise skill provides +20 attack during your turn!
+
+Begin AI Player's Action Phase:
+
+Begin AI Player's End Phase:
+
+Begin Player 1's Turn 1:
+Player 1 draws 1 card.
+
+Begin Player 1's Bond Phase:
+Player 1 places Draug: Guardian Knight in the Bond Area faceup.
+
+Begin Player 1's Deployment Phase:
+Player 1 deploys Abel: The Green Knight to the Front Line!
+
+Begin Player 1's Action Phase:
+
+Player 1's Abel attacks AI Player's Cain!
+Player 1 draws Navarre as a support!
+AI Player draws Abel as a support!
+Cain's Red and Green Bond skill raises his attack by +30 when supported by Abel!
+The current battle state is Player 1's Abel with 50 attack vs. AI Player's Cain with 80 attack.
+The final battle state is Player 1's Abel with 50 attack vs. AI Player's Cain with 80 attack.
+AI Player's Cain resists the attack!
+
+
+Player 1's Marth attacks AI Player's Cord!
+Player 1 draws Caeda as a support!
+AI Player draws Barst as a support!
+The current battle state is Player 1's Marth with 70 attack vs. AI Player's Cord with 40 attack.
+The final battle state is Player 1's Marth with 70 attack vs. AI Player's Cord with 40 attack.
+AI Player's Cord is defeated!
+AI Player's Cord is sent to the Retreat Area.
+
+
+Begin Player 1's End Phase:
+
+Begin AI Player's Turn 1:
+AI Player draws 1 card.
+
+Begin AI Player's Bond Phase:
+AI Player places Caeda: Talys's Heart in the Bond Area faceup.
+
+Begin AI Player's Deployment Phase:
+AI Player class changes Cain into Cain: Knight Hailed as the Bull!
+Cain's Paladin’s Protection skill prevents Back Line enemies from attacking him or his low cost allies!
+AI Player draws 1 card.
+
+Begin AI Player's Action Phase:
+
+AI Player's Cain attacks Player 1's Marth!
+AI Player draws Cain as a support!
+Due to a self-support, AI Player's support draw fails!
+Player 1 draws Abel as a support!
+The current battle state is AI Player's Cain with 60 attack vs. Player 1's Marth with 50 attack.
+The final battle state is AI Player's Cain with 60 attack vs. Player 1's Marth with 50 attack.
+Player 1's Marth is defeated!
+One of Player 1's orbs breaks and is added to their hand.
+
+
+Begin AI Player's End Phase:
+
+Begin Player 1's Turn 2:
+Player 1 draws 1 card.
+
+Begin Player 1's Bond Phase:
+Player 1 places Caeda: Talys's Heart in the Bond Area faceup.
+
+Begin Player 1's Deployment Phase:
+Player 1 deploys Gordin: Archer of the Liberators to the Back Line!
+Player 1 deploys Lena: Angel to All to the Back Line!
+
+Begin Player 1's Action Phase:
+
+Player 1's Marth attacks AI Player's Cain!
+Player 1 draws Navarre as a support!
+AI Player draws Linde as a support!
+The current battle state is Player 1's Marth with 50 attack vs. AI Player's Cain with 80 attack.
+The final battle state is Player 1's Marth with 50 attack vs. AI Player's Cain with 80 attack.
+AI Player's Cain resists the attack!
+
+
+Player 1's Abel attacks AI Player's Cain!
+Player 1 draws Merric as a support!
+AI Player draws Gordin as a support!
+The current battle state is Player 1's Abel with 60 attack vs. AI Player's Cain with 80 attack.
+The final battle state is Player 1's Abel with 60 attack vs. AI Player's Cain with 80 attack.
+AI Player's Cain resists the attack!
+
+Player 1 flips the bonded Caeda: Talys's Heart facedown!
+Player 1 activates Gordin's Steel Bow skill! Gordin's attack increases by +10 until the end of the turn.
+
+Begin Player 1's End Phase:
+
+Begin AI Player's Turn 2:
+AI Player draws 1 card.
+
+Begin AI Player's Bond Phase:
+AI Player places Cord: Talysian Axeman in the Bond Area faceup.
+
+Begin AI Player's Deployment Phase:
+AI Player deploys Caeda: Battlefield-Soaring Princess to the Front Line!
+
+Begin AI Player's Action Phase:
+
+AI Player's Cain attacks Player 1's Abel!
+AI Player draws Abel as a support!
+Player 1 draws Merric as a support!
+The current battle state is AI Player's Cain with 70 attack vs. Player 1's Abel with 60 attack.
+The final battle state is AI Player's Cain with 70 attack vs. Player 1's Abel with 60 attack.
+Player 1's Abel is defeated!
+Player 1's Abel is sent to the Retreat Area.
+
+
+AI Player's Caeda attacks Player 1's Marth!
+AI Player draws Caeda as a support!
+Due to a self-support, AI Player's support draw fails!
+Player 1 draws Marth as a support!
+Due to a self-support, Player 1's support draw fails!
+The current battle state is AI Player's Caeda with 50 attack vs. Player 1's Marth with 40 attack.
+The final battle state is AI Player's Caeda with 50 attack vs. Player 1's Marth with 40 attack.
+Player 1's Marth is defeated!
+One of Player 1's orbs breaks and is added to their hand.
+
+
+Begin AI Player's End Phase:
+
+Begin Player 1's Turn 3:
+Player 1 draws 1 card.
+
+Begin Player 1's Bond Phase:
+Player 1 places Cain: The Red Knight in the Bond Area faceup.
+
+Begin Player 1's Deployment Phase:
+Player 1 class changes Marth into Marth: Star and Savior!
+Player 1 draws 1 card.
+
+Begin Player 1's Action Phase:
+
+Player 1's Marth attacks AI Player's Cain!
+Player 1 draws Navarre as a support!
+AI Player draws Gordin as a support!
+Player 1's supported Navarre activates Attack Emblem. Marth's attack is boosted by +20 for this battle!
+The current battle state is Player 1's Marth with 100 attack vs. AI Player's Cain with 80 attack.
+The final battle state is Player 1's Marth with 100 attack vs. AI Player's Cain with 80 attack.
+AI Player's Cain is defeated!
+One of AI Player's orbs breaks and is added to their hand.
+
+
+Player 1's Gordin attacks AI Player's Caeda!
+Gordin's Anti-Fliers skill provides +30 attack against Caeda!
+Player 1 draws Navarre as a support!
+AI Player draws Caeda as a support!
+Due to a self-support, AI Player's support draw fails!
+The current battle state is Player 1's Gordin with 70 attack vs. AI Player's Caeda with 50 attack.
+The final battle state is Player 1's Gordin with 70 attack vs. AI Player's Caeda with 50 attack.
+AI Player's Caeda is defeated!
+AI Player's Caeda is sent to the Retreat Area.
+
+
+Begin Player 1's End Phase:
+
+Begin AI Player's Turn 3:
+AI Player draws 1 card.
+
+Begin AI Player's Bond Phase:
+AI Player places Abel: The Green Knight in the Bond Area faceup.
+
+Begin AI Player's Deployment Phase:
+AI Player deploys Abel: The Green Knight to the Front Line!
+AI Player deploys Barst: The Hatchet to the Front Line!
+Barst's Fighter's Expertise skill provides +20 attack during your turn!
+
+Begin AI Player's Action Phase:
+
+AI Player's Cain attacks Player 1's Marth!
+AI Player draws Jagen as a support!
+Player 1 draws Lena as a support!
+Player 1's supported Lena activates Miracle Emblem. AI Player's attacking Cain cannot perform a Critical Hit in this battle!
+The current battle state is AI Player's Cain with 80 attack vs. Player 1's Marth with 90 attack.
+The final battle state is AI Player's Cain with 80 attack vs. Player 1's Marth with 90 attack.
+Player 1's Marth resists the attack!
+
+
+AI Player's Barst attacks Player 1's Marth!
+AI Player draws Bord as a support!
+Player 1 draws Bord as a support!
+AI Player's supported Bord activates Attack Emblem. Barst's attack is boosted by +20 for this battle!
+The current battle state is AI Player's Barst with 90 attack vs. Player 1's Marth with 80 attack.
+The final battle state is AI Player's Barst with 90 attack vs. Player 1's Marth with 80 attack.
+Player 1's Marth is defeated!
+One of Player 1's orbs breaks and is added to their hand.
+
+
+AI Player's Abel attacks Player 1's Marth!
+AI Player draws Jagen as a support!
+Player 1 draws Linde as a support!
+The current battle state is AI Player's Abel with 60 attack vs. Player 1's Marth with 90 attack.
+The final battle state is AI Player's Abel with 60 attack vs. Player 1's Marth with 90 attack.
+Player 1's Marth resists the attack!
+
+
+Begin AI Player's End Phase:
+
+Begin Player 1's Turn 4:
+Player 1 draws 1 card.
+
+Begin Player 1's Bond Phase:
+Player 1 places Abel: The Green Knight in the Bond Area faceup.
+
+Begin Player 1's Deployment Phase:
+Player 1 class changes Gordin into Gordin: Bow Knight of the League!
+Player 1 draws 1 card.
+Player 1 deploys Cord: Talysian Axeman to the Front Line!
+Cord's Fighter's Expertise skill provides +20 attack during your turn!
+
+Begin Player 1's Action Phase:
+
+Player 1's Cord attacks AI Player's Barst!
+Player 1 draws Cain as a support!
+AI Player draws Abel as a support!
+Player 1's supported Cain activates Attack Emblem. Cord's attack is boosted by +20 for this battle!
+The current battle state is Player 1's Cord with 80 attack vs. AI Player's Barst with 50 attack.
+AI Player's Barst activates a god-speed evasion!
+AI Player discards Barst: The Hatchet to the Retreat Zone.
+
+
+Player 1's Marth attacks AI Player's Cain!
+Player 1 draws Bord as a support!
+AI Player draws Cain as a support!
+Due to a self-support, AI Player's support draw fails!
+Player 1's supported Bord activates Attack Emblem. Marth's attack is boosted by +20 for this battle!
+The current battle state is Player 1's Marth with 100 attack vs. AI Player's Cain with 60 attack.
+The final battle state is Player 1's Marth with 100 attack vs. AI Player's Cain with 60 attack.
+AI Player's Cain is defeated!
+One of AI Player's orbs breaks and is added to their hand.
+
+Player 1 flips the bonded Cain: The Red Knight facedown!
+Player 1 flips the bonded Abel: The Green Knight facedown!
+Player 1 activates Lena's Heal skill to add Marth: Star and Savior to their hand!
+
+Begin Player 1's End Phase:
+
+Begin AI Player's Turn 4:
+AI Player draws 1 card.
+
+Begin AI Player's Bond Phase:
+AI Player places Caeda: Battlefield-Soaring Princess in the Bond Area faceup.
+
+Begin AI Player's Deployment Phase:
+AI Player deploys Jagen: Faithful Veteran to the Front Line!
+
+Begin AI Player's Action Phase:
+
+AI Player's Cain attacks Player 1's Marth!
+AI Player draws Abel as a support!
+Player 1 draws Linde as a support!
+The current battle state is AI Player's Cain with 70 attack vs. Player 1's Marth with 90 attack.
+The final battle state is AI Player's Cain with 70 attack vs. Player 1's Marth with 90 attack.
+Player 1's Marth resists the attack!
+
+
+AI Player's Barst attacks Player 1's Marth!
+AI Player draws Abel as a support!
+Player 1 draws Barst as a support!
+AI Player's supported Abel activates Attack Emblem. Barst's attack is boosted by +20 for this battle!
+The current battle state is AI Player's Barst with 90 attack vs. Player 1's Marth with 80 attack.
+The final battle state is AI Player's Barst with 90 attack vs. Player 1's Marth with 80 attack.
+Player 1's Marth is defeated!
+One of Player 1's orbs breaks and is added to their hand.
+
+
+AI Player's Abel attacks Player 1's Cord!
+AI Player draws Cain as a support!
+Player 1 draws Draug as a support!
+Abel's Green and Red Bond skill raises his attack by +30 when supported by Cain!
+AI Player's supported Cain activates Attack Emblem. Abel's attack is boosted by +20 for this battle!
+Player 1's supported Draug activates Defense Emblem. Cord's attack is boosted by +20 for this battle!
+The current battle state is AI Player's Abel with 100 attack vs. Player 1's Cord with 60 attack.
+The final battle state is AI Player's Abel with 100 attack vs. Player 1's Cord with 60 attack.
+Player 1's Cord is defeated!
+Player 1's Cord is sent to the Retreat Area.
+
+
+AI Player's Jagen attacks Player 1's Marth!
+AI Player draws Cord as a support!
+Player 1 draws Marth as a support!
+Due to a self-support, Player 1's support draw fails!
+AI Player's supported Cord activates Attack Emblem. Jagen's attack is boosted by +20 for this battle!
+The current battle state is AI Player's Jagen with 100 attack vs. Player 1's Marth with 70 attack.
+The final battle state is AI Player's Jagen with 100 attack vs. Player 1's Marth with 70 attack.
+Player 1's Marth is defeated!
+One of Player 1's orbs breaks and is added to their hand.
+
+
+Begin AI Player's End Phase:
+
+Begin Player 1's Turn 5:
+Player 1 draws 1 card.
+
+Begin Player 1's Bond Phase:
+Player 1 places Navarre: Scarlet Sword in the Bond Area faceup.
+
+Begin Player 1's Deployment Phase:
+Player 1 deploys Ogma: Wielder of a Heavy Blade to the Front Line!
+Player 1 deploys Barst: The Hatchet to the Front Line!
+Barst's Fighter's Expertise skill provides +20 attack during your turn!
+
+Ogma's Captain of the Royal Talysian Army skill raises the attack of himself and Barst by +10 until the end of the turn!
+
+Begin Player 1's Action Phase:
+
+Player 1's Ogma attacks AI Player's Jagen!
+Player 1 draws Ogma as a support!
+Due to a self-support, Player 1's support draw fails!
+AI Player draws Caeda as a support!
+The current battle state is Player 1's Ogma with 70 attack vs. AI Player's Jagen with 100 attack.
+The final battle state is Player 1's Ogma with 70 attack vs. AI Player's Jagen with 100 attack.
+AI Player's Jagen resists the attack!
+
+
+Player 1's Barst attacks AI Player's Jagen!
+Player 1 draws Cord as a support!
+AI Player draws Gordin as a support!
+Player 1's supported Cord activates Attack Emblem. Barst's attack is boosted by +20 for this battle!
+The current battle state is Player 1's Barst with 100 attack vs. AI Player's Jagen with 90 attack.
+The final battle state is Player 1's Barst with 100 attack vs. AI Player's Jagen with 90 attack.
+AI Player's Jagen is defeated!
+AI Player's Jagen is sent to the Retreat Area.
+
+
+Player 1's Marth attacks AI Player's Cain!
+Player 1 draws Gordin as a support!
+AI Player draws Gordin as a support!
+Player 1's supported Gordin activates Attack Emblem. Marth's attack is boosted by +20 for this battle!
+The current battle state is Player 1's Marth with 110 attack vs. AI Player's Cain with 80 attack.
+The final battle state is Player 1's Marth with 110 attack vs. AI Player's Cain with 80 attack.
+AI Player's Cain is defeated!
+One of AI Player's orbs breaks and is added to their hand.
+
+Player 1 flips the bonded Navarre: Scarlet Sword facedown!
+Player 1 flips the bonded Draug: Guardian Knight facedown!
+Player 1 activates Lena's Heal skill to add Marth: Altean Prince to their hand!
+
+Begin Player 1's End Phase:
+
+Begin AI Player's Turn 5:
+AI Player draws 1 card.
+
+Begin AI Player's Bond Phase:
+
+Begin AI Player's Deployment Phase:
+AI Player deploys Bord: Talysian Warrior to the Front Line!
+Bord's Fighter's Expertise skill provides +20 attack during your turn!
+AI Player deploys Caeda: Battlefield-Soaring Princess to the Front Line!
+
+Begin AI Player's Action Phase:
+
+AI Player's Cain attacks Player 1's Marth!
+AI Player draws Caeda as a support!
+Player 1 draws Ogma as a support!
+The current battle state is AI Player's Cain with 90 attack vs. Player 1's Marth with 80 attack.
+Player 1's Marth activates a god-speed evasion!
+Player 1 discards Marth: Altean Prince to the Retreat Zone.
+
+
+AI Player's Barst attacks Player 1's Ogma!
+AI Player draws Linde as a support!
+Player 1 draws Jagen as a support!
+AI Player's supported Linde activates Magic Emblem.
+AI Player draws 1 card.
+AI Player discards Linde: Miloah's Child to the Retreat Zone.
+The current battle state is AI Player's Barst with 80 attack vs. Player 1's Ogma with 80 attack.
+The final battle state is AI Player's Barst with 80 attack vs. Player 1's Ogma with 80 attack.
+Player 1's Ogma is defeated!
+Player 1's Ogma is sent to the Retreat Area.
+
+
+AI Player's Abel attacks Player 1's Barst!
+AI Player draws Bord as a support!
+Player 1 draws Abel as a support!
+AI Player's supported Bord activates Attack Emblem. Abel's attack is boosted by +20 for this battle!
+The current battle state is AI Player's Abel with 70 attack vs. Player 1's Barst with 50 attack.
+The final battle state is AI Player's Abel with 70 attack vs. Player 1's Barst with 50 attack.
+Player 1's Barst is defeated!
+Player 1's Barst is sent to the Retreat Area.
+
+
+AI Player's Bord attacks Player 1's Marth!
+AI Player draws Linde as a support!
+Player 1 draws Caeda as a support!
+AI Player's supported Linde activates Magic Emblem.
+AI Player draws 1 card.
+AI Player discards Gordin: Archer of the Liberators to the Retreat Zone.
+The current battle state is AI Player's Bord with 70 attack vs. Player 1's Marth with 100 attack.
+The final battle state is AI Player's Bord with 70 attack vs. Player 1's Marth with 100 attack.
+Player 1's Marth resists the attack!
+
+AI Player flips the bonded Caeda: Talys's Heart facedown!
+AI Player activates Caeda's Javelin skill!
+
+AI Player's Caeda attacks Player 1's Lena!
+AI Player draws Bord as a support!
+Player 1 draws Cain as a support!
+AI Player's supported Bord activates Attack Emblem. Caeda's attack is boosted by +20 for this battle!
+The current battle state is AI Player's Caeda with 80 attack vs. Player 1's Lena with 30 attack.
+Player 1's Lena activates a god-speed evasion!
+Player 1 discards Lena: Angel to All to the Retreat Zone.
+
+
+Begin AI Player's End Phase:
+
+Begin Player 1's Turn 6:
+Player 1 draws 1 card.
+
+Begin Player 1's Bond Phase:
+Player 1 places Merric: Wind Mage in the Bond Area faceup.
+
+Begin Player 1's Deployment Phase:
+Player 1 deploys Jagen: Faithful Veteran to the Front Line!
+Player 1 deploys Ogma: Wielder of a Heavy Blade to the Front Line!
+
+Begin Player 1's Action Phase:
+
+Player 1's Gordin attacks AI Player's Caeda!
+Gordin's Anti-Fliers skill provides +30 attack against Caeda!
+Player 1 draws Cain as a support!
+AI Player draws Jagen as a support!
+Player 1's supported Cain activates Attack Emblem. Gordin's attack is boosted by +20 for this battle!
+The current battle state is Player 1's Gordin with 110 attack vs. AI Player's Caeda with 70 attack.
+The final battle state is Player 1's Gordin with 110 attack vs. AI Player's Caeda with 70 attack.
+AI Player's Caeda is defeated!
+AI Player's Caeda is sent to the Retreat Area.
+
+
+Player 1's Marth attacks AI Player's Cain!
+Player 1 draws Ogma as a support!
+AI Player draws Cain as a support!
+Due to a self-support, AI Player's support draw fails!
+Player 1's supported Ogma activates Attack Emblem. Marth's attack is boosted by +20 for this battle!
+The current battle state is Player 1's Marth with 100 attack vs. AI Player's Cain with 60 attack.
+The final battle state is Player 1's Marth with 100 attack vs. AI Player's Cain with 60 attack.
+AI Player's Cain is defeated!
+One of AI Player's orbs breaks and is added to their hand.
+
+
+Player 1's Jagen attacks AI Player's Cain!
+Player 1 draws Caeda as a support!
+AI Player draws Cain as a support!
+Due to a self-support, AI Player's support draw fails!
+The current battle state is Player 1's Jagen with 100 attack vs. AI Player's Cain with 60 attack.
+The final battle state is Player 1's Jagen with 100 attack vs. AI Player's Cain with 60 attack.
+AI Player's Cain is defeated!
+One of AI Player's orbs breaks and is added to their hand.
+
+
+Player 1's Ogma attacks AI Player's Cain!
+Player 1 draws Merric as a support!
+Player 1's Deck is empty; shuffling the Retreat Area into the Deck!
+AI Player draws Cord as a support!
+AI Player's Deck is empty; shuffling the Retreat Area into the Deck!
+Player 1's supported Merric activates Magic Emblem.
+Player 1 draws 1 card.
+Player 1 discards Caeda: Battlefield-Soaring Princess to the Retreat Zone.
+The current battle state is Player 1's Ogma with 80 attack vs. AI Player's Cain with 70 attack.
+AI Player's Cain activates a god-speed evasion!
+AI Player discards Cain: Knight Hailed as the Bull to the Retreat Zone.
+
+
+Begin Player 1's End Phase:
+
+Begin AI Player's Turn 6:
+AI Player draws 1 card.
+
+Begin AI Player's Bond Phase:
+
+Begin AI Player's Deployment Phase:
+AI Player class changes Abel into Abel: Knight Hailed as the Panther!
+Abel's Paladin’s Protection skill prevents Back Line enemies from attacking him or his low cost allies!
+AI Player draws 1 card.
+AI Player deploys Caeda: Talys's Heart to the Front Line!
+AI Player deploys Gordin: Archer of the Liberators to the Back Line!
+
+Begin AI Player's Action Phase:
+
+AI Player's Cain attacks Player 1's Ogma!
+AI Player draws Linde as a support!
+Player 1 draws Ogma as a support!
+Due to a self-support, Player 1's support draw fails!
+AI Player's supported Linde activates Magic Emblem.
+AI Player draws 1 card.
+AI Player discards Barst: The Hatchet to the Retreat Zone.
+The current battle state is AI Player's Cain with 80 attack vs. Player 1's Ogma with 60 attack.
+The final battle state is AI Player's Cain with 80 attack vs. Player 1's Ogma with 60 attack.
+Player 1's Ogma is defeated!
+Player 1's Ogma is sent to the Retreat Area.
+
+
+AI Player's Barst attacks Player 1's Marth!
+AI Player draws Cain as a support!
+Player 1 draws Cain as a support!
+AI Player's supported Cain activates Attack Emblem. Barst's attack is boosted by +20 for this battle!
+The current battle state is AI Player's Barst with 90 attack vs. Player 1's Marth with 80 attack.
+Player 1's Marth activates a god-speed evasion!
+Player 1 discards Marth: Star and Savior to the Retreat Zone.
+
+
+AI Player's Abel attacks Player 1's Jagen!
+AI Player draws Gordin as a support!
+Player 1 draws Gordin as a support!
+The current battle state is AI Player's Abel with 80 attack vs. Player 1's Jagen with 90 attack.
+The final battle state is AI Player's Abel with 80 attack vs. Player 1's Jagen with 90 attack.
+Player 1's Jagen resists the attack!
+
+
+AI Player's Bord attacks Player 1's Jagen!
+AI Player draws Abel as a support!
+Player 1 draws Jagen as a support!
+Due to a self-support, Player 1's support draw fails!
+AI Player's supported Abel activates Attack Emblem. Bord's attack is boosted by +20 for this battle!
+The current battle state is AI Player's Bord with 80 attack vs. Player 1's Jagen with 70 attack.
+The final battle state is AI Player's Bord with 80 attack vs. Player 1's Jagen with 70 attack.
+Player 1's Jagen is defeated!
+Player 1's Jagen is sent to the Retreat Area.
+
+
+AI Player's Caeda attacks Player 1's Marth!
+AI Player draws Jagen as a support!
+Player 1 draws Merric as a support!
+The current battle state is AI Player's Caeda with 50 attack vs. Player 1's Marth with 90 attack.
+The final battle state is AI Player's Caeda with 50 attack vs. Player 1's Marth with 90 attack.
+Player 1's Marth resists the attack!
+
+
+AI Player's Gordin attacks Player 1's Marth!
+AI Player draws Caeda as a support!
+Player 1 draws Caeda as a support!
+The current battle state is AI Player's Gordin with 60 attack vs. Player 1's Marth with 100 attack.
+The final battle state is AI Player's Gordin with 60 attack vs. Player 1's Marth with 100 attack.
+Player 1's Marth resists the attack!
+
+
+Begin AI Player's End Phase:
+
+Begin Player 1's Turn 7:
+Player 1 draws 1 card.
+
+Begin Player 1's Bond Phase:
+
+Begin Player 1's Deployment Phase:
+Player 1 deploys Cain: Knight Hailed as the Bull to the Front Line!
+Cain's Paladin’s Protection skill prevents Back Line enemies from attacking him or his low cost allies!
+
+Begin Player 1's Action Phase:
+
+Player 1's Marth attacks AI Player's Cain!
+Player 1 draws Navarre as a support!
+AI Player draws Jagen as a support!
+The current battle state is Player 1's Marth with 80 attack vs. AI Player's Cain with 80 attack.
+AI Player's Cain activates a god-speed evasion!
+AI Player discards Cain: The Red Knight to the Retreat Zone.
+
+
+Player 1's Cain attacks AI Player's Cain!
+Player 1 draws Ogma as a support!
+AI Player draws Caeda as a support!
+Player 1's supported Ogma activates Attack Emblem. Cain's attack is boosted by +20 for this battle!
+The current battle state is Player 1's Cain with 90 attack vs. AI Player's Cain with 90 attack.
+The final battle state is Player 1's Cain with 90 attack vs. AI Player's Cain with 90 attack.
+AI Player's Cain is defeated!
+Player 1 wins the game!
+

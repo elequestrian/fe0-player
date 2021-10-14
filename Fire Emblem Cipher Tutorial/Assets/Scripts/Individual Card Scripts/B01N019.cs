@@ -29,6 +29,19 @@ public class B01N019 : BasicCard
         SetUp();
     }
 
+    //Fighter's Expertise [ALWAYS] During your turn, this unit gains +20 attack.
+    public override int ExpectedAttackValue
+    {
+        get
+        {
+            //if it is the agent's turn, attack is boosted.
+            if (GameManager.instance.turnAgent == DM)
+                return BaseAttack + 20;
+            else
+                return BaseAttack;
+        }
+    }
+
     //Adds calls to this card's skills when the card enteres the field.
     public override void ActivateFieldSkills()
     {

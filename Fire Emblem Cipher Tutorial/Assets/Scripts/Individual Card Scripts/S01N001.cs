@@ -112,7 +112,7 @@ public class S01N001 : BasicCard {
     }
 
     //calls the dialogue box for the player to choose to use Prince of Light.
-    public override void ActivateTriggerSkill(BasicCard triggeringCard)
+    public override void ResolveTriggerSkillLP(BasicCard triggeringCard)
     {
         DialogueWindowDetails details = new DialogueWindowDetails
         {
@@ -148,7 +148,7 @@ public class S01N001 : BasicCard {
         {
             cardsToDisplay = Owner.Opponent.BackLineCards,
             numberOfCardsToPick = 1,
-            locationText = Owner.Opponent.playerName + "'s Back Line",
+            locationText = DM.Opponent.PlayerName + "'s Back Line",
             instructionText = "Please choose one card to move using Marth's Prince of Light skill.",
             mayChooseLess = true,
             effectToActivate = eventToCall
@@ -171,7 +171,7 @@ public class S01N001 : BasicCard {
             AddToSkillChangeTracker("Marth's Prince of Light skill has been used this turn.");
 
             //displays the ability on the Game Log
-            CardReader.instance.UpdateGameLog("\n" + Owner.playerName + " activates Marth's Prince of Light skill!");
+            CardReader.instance.UpdateGameLog("\n" + DM.PlayerName + " activates Marth's Prince of Light skill!");
 
             Owner.Opponent.MoveCard(target[0]);
         }

@@ -110,7 +110,7 @@ public class B01N026 : BasicCard
         {
             cardsToDisplay = targets,
             numberOfCardsToPick = 1,
-            locationText = Owner.playerName + "'s Retreat",
+            locationText = DM.PlayerName + "'s Retreat",
             instructionText = "Please choose one card to return to your hard using Lena's Heal skill.",
             mayChooseLess = false,
             effectToActivate = eventToCall
@@ -135,7 +135,7 @@ public class B01N026 : BasicCard
             Owner.CardToHand(list[0], Owner.Retreat);
 
             //updates the game log
-            CardReader.instance.UpdateGameLog(Owner.playerName + " activates Lena's Heal skill to add " + list[0].CharName + ": " +
+            CardReader.instance.UpdateGameLog(DM.PlayerName + " activates Lena's Heal skill to add " + list[0].CharName + ": " +
                 list[0].CharTitle + " to their hand!");
         }
     }

@@ -7,6 +7,8 @@ public class TriggerEventHandler
     private List<BasicCard> listenerList = new List<BasicCard>();
     private BasicCard triggeringCard;
 
+    //A public-facing property to return the card which triggered this effect. 
+    public BasicCard TriggeringCard { get { return triggeringCard; } }
 
     //Adds a card to the listenerList
     public void AddListener(BasicCard card)
@@ -60,36 +62,20 @@ public class TriggerEventHandler
             }
             else if (activeCards.Count > 1)
             {
-                //This sets up the method to call after the CardPicker finishes.
-                MyCardListEvent eventToCall = new MyCardListEvent();
-                eventToCall.AddListener(CallTriggerSkill);
-
-                //makes the player choose one of the triggered/active cards to resolve first.
-                CardPickerDetails details = new CardPickerDetails
-                {
-                    cardsToDisplay = activeCards,
-                    numberOfCardsToPick = 1,
-                    locationText = GameManager.instance.turnPlayer.playerName + "'s Cards",
-                    instructionText = "The below cards have a skill triggered by " + triggeringCard.CharName + "'s deployment.  Please choose one card to resolve first.",
-                    mayChooseLess = false,
-                    effectToActivate = eventToCall
-                };
-
-                CardPickerWindow cardPicker = CardPickerWindow.Instance();
-                cardPicker.ChooseCards(details);
+                GameManager.instance.turnAgent.ChooseAmongTriggeredCards(this, activeCards);
             }
 
         }
     }
 
     //This is the method called by the Card Picker which activates the first trigger ability.
-    private void CallTriggerSkill(List<BasicCard> cardList)
+    public void CallTriggerSkill(List<BasicCard> cardList)
     {
         //be sure the list only has one card as intended.
         if (cardList.Count == 1)
         {
             cardList[0].triggerResolved = true;
-            cardList[0].ActivateTriggerSkill(triggeringCard);
+            cardList[0].DM.ActivateTriggerSkill(cardList[0], triggeringCard);
         }
         else
         {
@@ -125,23 +111,7 @@ public class TriggerEventHandler
             }
             else if (activeCards.Count > 1)
             {
-                //This sets up the method to call after the CardPicker finishes.
-                MyCardListEvent eventToCall = new MyCardListEvent();
-                eventToCall.AddListener(CallTriggerSkill);
-
-                //makes the player choose one of the triggered/active cards to resolve next.
-                CardPickerDetails details = new CardPickerDetails
-                {
-                    cardsToDisplay = activeCards,
-                    numberOfCardsToPick = 1,
-                    locationText = GameManager.instance.turnPlayer.playerName + "'s Cards",
-                    instructionText = "The below cards have a skill triggered by " + triggeringCard.CharName + "'s deployment.  Please choose one card to resolve first.",
-                    mayChooseLess = false,
-                    effectToActivate = eventToCall
-                };
-
-                CardPickerWindow cardPicker = CardPickerWindow.Instance();
-                cardPicker.ChooseCards(details);
+                GameManager.instance.turnAgent.ChooseAmongTriggeredCards(this, activeCards);
             }
             else    //no active cards.
             {

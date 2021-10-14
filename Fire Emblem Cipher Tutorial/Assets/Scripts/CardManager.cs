@@ -4,7 +4,9 @@ using UnityEngine;
 using UnityEngine.Events;
 using System;
 
-public class CardManager
+//The CardManager script is responsible for keeping track of where a player's cards exist on the field through a series of lists.
+//It also carries much of the logic for basic game actions like drawing cards, doing a mulligan, checking bonded colors, etc.
+public class CardManager : MonoBehaviour
 {
     private List<BasicCard> deckList;
     private List<BasicCard> deck;                                   //this is a reference to the player's actual deck.  Note that the 0 indexed card is the top card of the deck. 
@@ -16,20 +18,20 @@ public class CardManager
     private List<CardStack> backLine = new List<CardStack>(10);
     private BasicCard supportCard;
     private LayoutManager layoutManager;
+    private DecisionMaker decisionMaker;
+    public RetreatView retreatView;
     
 
-    public string playerName;
     public TriggerEventHandler deployTriggerTracker = new TriggerEventHandler();
     public TriggerEventHandler AttackTargetHandler = new TriggerEventHandler();
     public UnityEvent BeginTurnEvent = new UnityEvent();
     public UnityEvent endTurnEvent = new UnityEvent();
     public UnityEvent FinishBondFlipEvent = new UnityEvent();
+    public UnityEvent FinishDiscardEvent = new UnityEvent();
     //An event to tell listeners that any change has occured to the number or type of allies deployed on the field.  Currently used by [ALWAYS] skills.  Has higher priority than the TriggerHandlers and those skills.
     public UnityEvent FieldChangeEvent = new UnityEvent();
 
     //public bool defenderEvaded = false;                           //a tag to tell skills if the battle resulted in an evade.
-
-    private bool[] bondedColors = new bool[CipherData.NumColors];        //contains a bool array of all the colors currently present in the bonds.
 
     private CardManager opponent;                                   //a field to contain the opposing player for effect and attack calculations.
 
@@ -51,7 +53,34 @@ public class CardManager
     
 
     public CardManager Opponent { get { return opponent; } }
-    public bool[] BondedColors { get { return bondedColors; } }
+
+    //A property which returns a boolean array of the colors currently present on the face-up bonds. 
+    public bool[] BondedColors
+    {
+        get
+        {
+            bool[] bondedColors = new bool[CipherData.NumColors];
+
+            List<BasicCard> faceUpBonds = FaceUpBonds;
+
+            //Add all the current faceup bonds' colors to the list.
+            //Start by looping through each face-up bond card
+            for (int i = 0; i < faceUpBonds.Count; i++)
+            {
+                //Loops through each possible color on the card
+                for (int j = 0; j < CipherData.NumColors; j++)
+                {
+                    //if the card contains that color, it adds the color to the BondedColors array
+                    if (faceUpBonds[i].CardColorArray[j])
+                    {
+                        bondedColors[j] = true;
+                    }
+                }
+            }
+            
+            return bondedColors;
+        }
+    }
 
     //This property returns a List of the string names of all the colors currently bonded on the field.
     public List<string> BondedColorNames
@@ -149,9 +178,9 @@ public class CardManager
         }
     }
 
-
+    /*
     //a constructor for the class assigning a given list of cards as the deck list.
-    public CardManager(List<BasicCard> list, LayoutManager lm, RetreatView rv, string name)
+    public CardManager(List<BasicCard> list, LayoutManager lm, RetreatView rv, string name, DecisionMaker dm)
     {
         layoutManager = lm;
         rv.Setup(this);
@@ -159,21 +188,22 @@ public class CardManager
         deckList = list;
         foreach (BasicCard card in list)
         {
-            card.SetOwner(this);
+            card.SetOwner(this, dm);
         }
         deck = deckList;
         for (int i = 0; i < deck.Count; i++)
         {
-            layoutManager.PlaceInDeck(deck[i]);
+            layoutManager.SetUpDeck(deck[i]);
         }
         ShuffleDeck();
 
         retreat = new List<BasicCard>(deckList.Count);
 
         playerName = name;
+
+        decisionMaker = dm;
     }
 
-    /*
     //a second constructor for the class without a retreat view.
     public CardManager(List<BasicCard> list, LayoutManager lm, string name)
     {
@@ -197,6 +227,57 @@ public class CardManager
     }
     */
 
+    //This method receives the deck from the Game Manager and sets up the Card Manager to handle 
+    public void Setup(DeckList list, DecisionMaker dm)
+    {
+        layoutManager = GetComponent<LayoutManager>();
+        decisionMaker = dm;
+        retreatView.Setup(this, decisionMaker);
+
+        deckList = CreateDeck(list);
+        foreach (BasicCard card in deckList)
+        {
+            card.SetOwner(this, decisionMaker);
+        }
+        deck = deckList;
+        for (int i = 0; i < deck.Count; i++)
+        {
+            layoutManager.SetUpDeck(deck[i]);
+        }
+        ShuffleDeck();
+
+        retreat = new List<BasicCard>(deckList.Count);
+
+        
+    }
+
+    //Instantiates the card gameobjects listed in a decklist and returns a list of those objects.
+    //NOTE: The method only instantiates cards at their default location.  This will need to be changed later to happen offscreen.
+    public List<BasicCard> CreateDeck(DeckList decklist)
+    {
+        List<BasicCard> deck1 = new List<BasicCard>();
+
+        foreach (KeyValuePair<string, int> kvp in decklist.deckListDictionary)
+        {
+            for (int i = 0; i < kvp.Value; i++)
+            {
+                //Debug.Log("Trying to load " + kvp.Key + " from Resources.");
+                GameObject loadedObject = Instantiate(Resources.Load(kvp.Key)) as GameObject;
+                //Debug.Log(loadedObject + " has been successfully loaded.");
+
+                BasicCard cardToAdd = loadedObject.GetComponent<BasicCard>();
+                deck1.Add(cardToAdd);
+                //Debug.Log(cardToAdd.ToString() + " has been added to the deck.");
+
+                //RectTransform cardTransform = cardToAdd.gameObject.transform as RectTransform;
+            }
+        }
+
+        Debug.Log("Deck contains " + deck1.Count + " cards.");
+
+        return deck1;
+    }
+
     public void SetOpponent (CardManager otherPlayer)
     {
         opponent = otherPlayer;
@@ -209,12 +290,12 @@ public class CardManager
         playerMC = layoutManager.SetAsMC(card);
         frontLine.Add(playerMC);
         
-        Debug.Log(playerName + "'s MC was set as " + MCCard.CharName + ": " + MCCard.ToString());
+        Debug.Log(decisionMaker.PlayerName + "'s MC was set as " + MCCard.CharName + ": " + MCCard.ToString());
     }
 
     public void Mulligan()
     {
-        Debug.Log(playerName + "'s hand will be mulliganed.");
+        Debug.Log(decisionMaker.PlayerName + "'s hand will be mulliganed.");
 
         //Returns all cards in the Hand to the deck
         while (hand.Count > 0)
@@ -311,7 +392,7 @@ public class CardManager
     //A helper method to post how many cards were drawn to the Game Log.
     private void DrawMessage(int cardsDrawn)
     {
-        string drawMessage = playerName + " draws " + cardsDrawn;
+        string drawMessage = decisionMaker.PlayerName + " draws " + cardsDrawn;
         if (cardsDrawn == 1)
             drawMessage += " card.";
         else
@@ -354,7 +435,7 @@ public class CardManager
                 if (DrawOneCard())
                     DrawMessage(1);
                 else
-                    CardReader.instance.UpdateGameLog("There are no more cards in " + playerName + "'s Deck or Retreat Area! " +
+                    CardReader.instance.UpdateGameLog("There are no more cards in " + decisionMaker.PlayerName + "'s Deck or Retreat Area! " +
                         "This draw is forfeited.");
 
                 remainingCards--;
@@ -397,7 +478,7 @@ public class CardManager
             retreat.Clear();
             ShuffleDeck();
 
-            CardReader.instance.UpdateGameLog(playerName + "'s Retreat Area was shuffled into the Deck!");
+            CardReader.instance.UpdateGameLog(decisionMaker.PlayerName + "'s Retreat Area was shuffled into the Deck!");
         }
         else
         {
@@ -410,7 +491,7 @@ public class CardManager
             retreat.Clear();
             ShuffleDeck();
 
-            CardReader.instance.UpdateGameLog(playerName + "'s Deck is empty; shuffling the Retreat Area into the Deck!");
+            CardReader.instance.UpdateGameLog(decisionMaker.PlayerName + "'s Deck is empty; shuffling the Retreat Area into the Deck!");
         }
 
         Debug.Log("The retreat has been shuffled back into the deck.  The deck now has " + deck.Count + " cards.");
@@ -457,11 +538,10 @@ public class CardManager
             Bonds.Add(card);
 
             //text for the Game Log
-            string bondText = playerName + " places " + card.CharName + ": " + card.CharTitle + " in the Bond Area ";
+            string bondText = decisionMaker.PlayerName + " places " + card.CharName + ": " + card.CharTitle + " in the Bond Area ";
 
             if (placeFaceUp)
             {
-                AddColorToBonds(card);
                 bondText += "faceup.";
             }
             else
@@ -473,43 +553,18 @@ public class CardManager
         }
     }
 
-    private void AddColorToBonds(BasicCard card)
-    {
-        //Loops through each possible color
-        for (int i = 0; i < CipherData.NumColors; i++)
-        {
-            //if the card contains that color, it adds the color to the BondedColors array
-            if (card.CardColorArray[i])
-            {
-                bondedColors[i] = true;
-            }
-        }
-    }
-
-    //This helper method can be called after flipping some bonds facedown to redo the Bonded Colors list
-    //may need to be public if color changing is allowed on bonds due to effects so that this can be called when appropriate.
-    private void UpdateBondedColors()
-    {
-        //Resets the bondedColors list
-        Array.Clear(bondedColors, 0, bondedColors.Length);
-
-        //Re-adds all the current faceup bonds' colors to the list.
-        for (int i = 0; i < FaceUpBonds.Count; i++)
-        {
-            AddColorToBonds(FaceUpBonds[i]);
-        }
-    }
-
     //This method checks to see if a particular card's colors have been bonded, so that it can be played.
     public bool AreCardColorsBonded(BasicCard card)
     {
+        bool[] bondColors = BondedColors;
+        
         //Loop through each possible color
         for (int i = 0; i < card.CardColorArray.Length; i++)
         {
             //if card does have color, but bondedColors doesn't then return false.
             if (card.CardColorArray[i])
             {
-                if (!BondedColors[i])
+                if (!bondColors[i])
                 {
                     return false;
                 }
@@ -522,7 +577,7 @@ public class CardManager
 
     //This method allows the user to choose bonds to flip
     //Note that since this is being called in the middle of a skill effect, I am not going to allow for a soft cancel.
-    //ADDITION: Consider adding a reference to the name of the skill being called as well as provide that text.
+    //NOTE: This method is becoming obsolete and will need to be removed once the AI has been fully implemented.
     public void ChooseBondsToFlip(int numToFlip)
     {
         //This sets up the method to call after the CardPicker finishes.
@@ -534,7 +589,7 @@ public class CardManager
         {
             cardsToDisplay = FaceUpBonds,
             numberOfCardsToPick = numToFlip,
-            locationText = playerName + "'s Bonds",
+            locationText = decisionMaker.PlayerName + "'s Bonds",
             instructionText = "Please choose " + numToFlip + " bond card",
             mayChooseLess = false,
             effectToActivate = eventToCall
@@ -554,16 +609,14 @@ public class CardManager
     }
 
     //This helper method actually flips the bonds in question facedown.  After flipping it calls back the method which presumably activating the bond flip.
-    private void FlipBonds(List<BasicCard> list)
+    public void FlipBonds(List<BasicCard> list)
     {
         for (int i = 0; i < list.Count; i++)
         {
             list[i].FlipFaceDown();
-            CardReader.instance.UpdateGameLog(playerName + " flips the bonded " + list[i].CharName + ": " + list[i].CharTitle 
+            CardReader.instance.UpdateGameLog(decisionMaker.PlayerName + " flips the bonded " + list[i].CharName + ": " + list[i].CharTitle 
                 + " facedown!");
         }
-
-        UpdateBondedColors();
 
         FinishBondFlipEvent.Invoke();
     }
@@ -648,13 +701,13 @@ public class CardManager
             if (FrontLineStacks.Contains(stackToMove))
             {
                 MoveStackToBackLine(stackToMove);
-                CardReader.instance.UpdateGameLog(playerName + "'s " + card.CharName + ": " + card.CharTitle
+                CardReader.instance.UpdateGameLog(decisionMaker.PlayerName + "'s " + card.CharName + ": " + card.CharTitle
                     + " moves to the Back Line!");
             }
             else if (BackLineStacks.Contains(stackToMove))
             {
                 MoveStackToFrontLine(stackToMove);
-                CardReader.instance.UpdateGameLog(playerName + "'s " + card.CharName + ": " + card.CharTitle
+                CardReader.instance.UpdateGameLog(decisionMaker.PlayerName + "'s " + card.CharName + ": " + card.CharTitle
                     + " moves to the Front Line!");
             }
             else
@@ -693,7 +746,7 @@ public class CardManager
             if (FrontLineStacks.Count == 0)
             {
                 Debug.Log("Activating a Forced March!");
-                CardReader.instance.UpdateGameLog(playerName + "'s units must undergo a Forced March!");
+                CardReader.instance.UpdateGameLog(decisionMaker.PlayerName + "'s units must undergo a Forced March!");
 
                 int n = BackLineStacks.Count;
 
@@ -746,10 +799,10 @@ public class CardManager
 
         //Post this action to the Game Log
         if (classChange)
-            CardReader.instance.UpdateGameLog(card.Owner.playerName + " class changes " + stackToAddTo.TopCard.CharName + " into "
+            CardReader.instance.UpdateGameLog(card.DM.PlayerName + " class changes " + stackToAddTo.TopCard.CharName + " into "
                 + card.CharName + ": " + card.CharTitle + "!");
         else
-            CardReader.instance.UpdateGameLog(card.Owner.playerName + " levels up " + stackToAddTo.TopCard.CharName + " into "
+            CardReader.instance.UpdateGameLog(card.DM.PlayerName + " levels up " + stackToAddTo.TopCard.CharName + " into "
                 + card.CharName + ": " + card.CharTitle + "!");
         
         stackToAddTo.AddCardToStack(card, classChange);
@@ -769,7 +822,11 @@ public class CardManager
         FieldChangeEvent.Invoke();
 
         //once any skills have activated, then we can update the deployment text with any changes.
-        GameManager.instance.UpdateDeploymentHintText();
+        //Only update the hint text if this is still the deployment phase
+        if (GameManager.instance.CurrentPhase == CipherData.PhaseEnum.Deployment)
+        {
+            decisionMaker.UpdateDeploymentHintText();
+        }
     }
 
     //deploys a card on the field
@@ -782,31 +839,15 @@ public class CardManager
         //remove the card from the hand.
         Hand.Remove(card);
 
-        //We need to know where to deploy this card.  Call a dialogue box.
-        DialogueWindowDetails details = new DialogueWindowDetails
-        {
-            windowTitleText = "Deployment",
-            questionText = "Where would you like to deploy " + card.CharName + "?",
-            button1Details = new DialogueButtonDetails
-            {
-                buttonText = "Front Line",
-                buttonAction = () => { DeployToFrontLine(card); }
-            },
-            button2Details = new DialogueButtonDetails
-            {
-                buttonText = "Back Line",
-                buttonAction = () => { DeployToBackLine(card); }
-            }
-        };
-
-        DialogueWindow dialogueWindow = DialogueWindow.Instance();
-        dialogueWindow.MakeChoice(details);
+        //Ask the DecisionMaker where to deploy this card.
+        //True is front line and false is back.
+        decisionMaker.ChooseDeployLocation(card);
     }
 
-    //method to actually deploy a card on the Front Line as well as handle any skills, etc. Called by DeployToFieldFromHand.
-    private void DeployToFrontLine(BasicCard card)
+    //method to actually deploy a card on the Front Line as well as handle any skills, etc. Called by the DecisionMaker from DeployToFieldFromHand.
+    public void DeployToFrontLine(BasicCard card)
     {
-        CardReader.instance.UpdateGameLog(card.Owner.playerName + " deploys " 
+        CardReader.instance.UpdateGameLog(card.DM.PlayerName + " deploys " 
             + card.CharName + ": " + card.CharTitle + " to the Front Line!");
         frontLine.Add(layoutManager.PlaceInFrontLine(card));
 
@@ -816,14 +857,14 @@ public class CardManager
         //Only update the hint text if this is still the deployment phase
         if (GameManager.instance.CurrentPhase == CipherData.PhaseEnum.Deployment)
         {
-            GameManager.instance.UpdateDeploymentHintText();
+            decisionMaker.UpdateDeploymentHintText();
         }
     }
 
-    //method to actually deploy a card on the Back Line as well as handle any skills, etc. Called by DeployToFieldFromHand.
-    private void DeployToBackLine(BasicCard card)
+    //method to actually deploy a card on the Back Line as well as handle any skills, etc. Called by the DecisionMaker from DeployToFieldFromHand.
+    public void DeployToBackLine(BasicCard card)
     {
-        CardReader.instance.UpdateGameLog(card.Owner.playerName + " deploys "
+        CardReader.instance.UpdateGameLog(card.DM.PlayerName + " deploys "
             + card.CharName + ": " + card.CharTitle + " to the Back Line!");
         backLine.Add(layoutManager.PlaceInBackLine(card));
 
@@ -832,11 +873,13 @@ public class CardManager
 
         if (GameManager.instance.CurrentPhase == CipherData.PhaseEnum.Deployment)
         {
-            GameManager.instance.UpdateDeploymentHintText();
+            decisionMaker.UpdateDeploymentHintText();
         }
     }
 
     //This helper method calls all the deployment related trigger skills currently registered.
+    //NOTE: Does this method need to be time-gated?
+    //We probably don't want other methods running ahead of this one, so we need to make sure this method resolves before moving forward...
     private void CheckDeploymentSkill(BasicCard card)
     {
         FieldChangeEvent.Invoke();
@@ -904,7 +947,7 @@ public class CardManager
         {
             supportCard = null;
             Debug.LogWarning("There are no cards in the deck!  This support is forfeited.");
-            CardReader.instance.UpdateGameLog(playerName + "'s deck is empty; the support draw fails!");
+            CardReader.instance.UpdateGameLog(decisionMaker.PlayerName + "'s deck is empty; the support draw fails!");
         }
     }
 
@@ -914,7 +957,7 @@ public class CardManager
         supportCard = Deck[0];
         layoutManager.PlaceInSupport(Deck[0]);
         Debug.Log(Deck[0].ToString() + " was placed in the Support Zone.");
-        CardReader.instance.UpdateGameLog(playerName + " draws " + Deck[0].CharName + " as a support!");
+        CardReader.instance.UpdateGameLog(decisionMaker.PlayerName + " draws " + Deck[0].CharName + " as a support!");
         deck.RemoveAt(0);
     }
 
@@ -926,8 +969,20 @@ public class CardManager
         supportCard = null;
     }
 
+    //This helper method discards a set of cards from the hand.
+    public void DiscardCardsFromHand(List<BasicCard> cardsToDiscard)
+    {
+        foreach (BasicCard card in cardsToDiscard)
+        {
+            DiscardCardFromHand(card);
+        }
+
+        //Resume any effects that need to occur after cards have been discarded.
+        FinishDiscardEvent.Invoke();
+    }
+
     //This helper method discards a given card from the hand.
-    public void DiscardCardFromHand(BasicCard card)
+    protected void DiscardCardFromHand(BasicCard card)
     {
         if (!Hand.Contains(card))
         {
@@ -938,7 +993,7 @@ public class CardManager
         retreat.Add(card);
         layoutManager.PlaceInRetreat(card);
         Debug.Log(card.ToString() + " was placed in the Retreat Zone.");
-        CardReader.instance.UpdateGameLog(playerName + " discards " + card.CharName + ": " + card.CharTitle + " to the Retreat Zone.");
+        CardReader.instance.UpdateGameLog(decisionMaker.PlayerName + " discards " + card.CharName + ": " + card.CharTitle + " to the Retreat Zone.");
         hand.Remove(card);
     }
 
@@ -969,7 +1024,7 @@ public class CardManager
             return;
         }
 
-        CardReader.instance.UpdateGameLog(playerName + "'s " + card.CharName + " is sent to the Retreat Area.");
+        CardReader.instance.UpdateGameLog(decisionMaker.PlayerName + "'s " + card.CharName + " is sent to the Retreat Area.");
 
         List<BasicCard> stackedCards = layoutManager.RemoveStackFromField(stackToRemove);
 
@@ -992,7 +1047,7 @@ public class CardManager
         //Check if there are enough orbs to be broken as appropriate.
         if (Orbs.Count == 0)                            //The lord has been felled with no orbs.  This player has lost.
         {
-            GameManager.instance.EndGame(Opponent);
+            GameManager.instance.EndGame(decisionMaker.Opponent);
         }
         else if (Orbs.Count > 0 && num <= Orbs.Count)    //There are enough orbs to break the full number requested.
         {
@@ -1014,7 +1069,7 @@ public class CardManager
     //This helper method takes an individual orb from the orb zone and moves it to the hand.
     private void BreakOneOrb()
     {
-        CardReader.instance.UpdateGameLog("One of " + playerName + "'s orbs breaks and is added to their hand.");
+        CardReader.instance.UpdateGameLog("One of " + decisionMaker.PlayerName + "'s orbs breaks and is added to their hand.");
         hand.Add(Orbs[0]);
         layoutManager.PlaceInHand(Orbs[0]);
         orbs.RemoveAt(0);

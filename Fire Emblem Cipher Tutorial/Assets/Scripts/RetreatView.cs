@@ -11,12 +11,14 @@ public class RetreatView : MonoBehaviour, IPointerEnterHandler, IPointerClickHan
     public Image background;
 
     private CardManager player;
+    private DecisionMaker agent;
 
     //Sets up the reference to the player for the RetreatView script.  Must be done dynamically (for now) because the GameManager creates
-    //the CardManager's for each player.
-    public void Setup(CardManager cardManager)
+    //the DecisionMaker for each player.
+    public void Setup(CardManager cardManager, DecisionMaker dm)
     {
         player = cardManager;
+        agent = dm;
     }
     
     //Detect if the Cursor starts to pass over the GameObject to display the button and background.
@@ -65,7 +67,7 @@ public class RetreatView : MonoBehaviour, IPointerEnterHandler, IPointerClickHan
         CardViewerDetails details = new CardViewerDetails
         {
             cardsToDisplay = player.Retreat,
-            locationText = player.playerName + "'s Retreat",
+            locationText = agent.PlayerName + "'s Retreat",
         };
 
         CardViewerWindow.Instance().ViewCards(details);

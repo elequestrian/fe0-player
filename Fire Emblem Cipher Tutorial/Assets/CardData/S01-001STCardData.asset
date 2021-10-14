@@ -20,6 +20,7 @@ MonoBehaviour:
   - Prince of Light [TRIGGER] [ONCE PER TURN] When you deploy an ally with a Deployment
     Cost 2 or lower, you may choose 1 enemy in the Back Line, and move them.
   - Falchion [ALWAYS] If this unit is attacking a <Dragon>, this unit gains +20 attack.
+  skillTypes: 000000000000000000000000000000
   charName: Marth
   classTitle: Lodestar
   deploymentCost: 4

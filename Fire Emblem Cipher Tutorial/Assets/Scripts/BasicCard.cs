@@ -11,6 +11,7 @@ public abstract class BasicCard : MonoBehaviour, IPointerClickHandler {
     protected Animator anim;
     [SerializeField] protected CardData cardData;
     protected CardManager owner;
+    protected DecisionMaker dm;
     protected bool tapped = false;                 
     protected bool faceup = true;
     public bool triggerResolved = false;
@@ -23,6 +24,8 @@ public abstract class BasicCard : MonoBehaviour, IPointerClickHandler {
     public UnityEvent AfterBattleEvent = new UnityEvent();
     public MyBasicCardEvent RemoveFromFieldEvent = new MyBasicCardEvent();
     protected List<string> skillChangeTracker = new List<string>();
+
+    public int aiRanking = 0;                           //Used by the AI logic to rank cards for different actions.
 
     //These card stats are held locally in case they get changed by other cards.
     protected int localDeploymentCost;
@@ -50,6 +53,7 @@ public abstract class BasicCard : MonoBehaviour, IPointerClickHandler {
     public virtual string[] CardSkills { get { return cardData.cardSkills; } }
     public virtual string CharName { get { return cardData.charName; } }
     public virtual string ClassTitle { get { return cardData.classTitle; } }
+    public virtual bool[] SkillTypes { get { return cardData.skillTypes; } }
 
     public virtual int DeploymentCost { get { return localDeploymentCost; } }
     public virtual int PromotionCost { get { return localPromotionCost; } }
@@ -64,10 +68,14 @@ public abstract class BasicCard : MonoBehaviour, IPointerClickHandler {
 
     public virtual bool Bondable { get { return true; } }                                   //Allows for certain cards (like S01-003: Jagen) to be unable to be placed in the Bond area.
     public virtual CardManager Owner { get { return owner; } }                              //allows for skills or other cards to know the owner of a card and access the field state.
+    public virtual DecisionMaker DM { get { return dm; } }
     public virtual bool Promotable { get { return localCanPromote; } }
     public List<string> SkillChangeTracker { get { return skillChangeTracker; } }
     public virtual int CurrentAttackValue { get { return BaseAttack + attackModifier; } }       //Returns the current attack stat including skill modifiers.
     public virtual int CurrentSupportValue { get { return BaseSupport + supportModifier; } }    //Returns the current support stat including skill modifiers.
+
+    //Returns the expected attack at this point in the game to help the AI make decisions.
+    public virtual int ExpectedAttackValue { get { return BaseAttack; } }
 
     //Property returns a List of the string names of the colors on this card.
     public virtual List<string> CardColorList
@@ -218,33 +226,27 @@ public abstract class BasicCard : MonoBehaviour, IPointerClickHandler {
                 Debug.LogError("Error!  " + this.ToString() + " is not on the field!  Please check why AttackTargets called!");
             }
 
+            //Have any relevant listeners edit the attack target list.
             allTargets = Owner.AttackTargetHandler.MakeListenersEditList(this, allTargets);
 
             return allTargets;
         }
     }
 
-    //Returns the current deployment cost for this card given the board state.
-    //NOTE: This was made obsolete in the current iteration of the deploy/levelUp/classChange logic.
-    /*
+    //A property that returns the current deployment cost for this card given the board state.
+    //Used in the AI Deployment Logic calculations.
     public virtual int ActualDeployCost
     {
         get
         {
-            //if there is a card on the field with the same name, then check for a promotion cost, otherwise return its deployment cost
-            foreach (BasicCard card in owner.FieldCards)
-            {
-                if (card.CharName == CharName && Promotable)
-                {
-                    return PromotionCost;
-                }
-            }
-            
-            
-            return DeploymentCost;
+            //Check if the card is promotable and whether a card exists on the field with the same name.
+            //If so, return the promotion cost.  Otherwise return the Deployment Cost.
+            if (Promotable && owner.FieldCards.Exists(x => x.CompareNames(this)))
+                return PromotionCost;
+            else
+                return DeploymentCost;
         }
     }
-    */
 
     // This method takes the place of the Start method as Start is not called in inherited classes. 
     //NOTE: need to clone the arrays to store a shallow copy and not a reference to the cardData.
@@ -353,9 +355,10 @@ public abstract class BasicCard : MonoBehaviour, IPointerClickHandler {
     }
     */
 
-    public void SetOwner(CardManager newOwner)
+    public void SetOwner(CardManager newOwner, DecisionMaker agent)
     {
         owner = newOwner;
+        dm = agent;
     }
 
     //These two virtual methods form the base for the implementation of ACT skills and can be overridden in the specific card scripts if necessary to implement specific skills.
@@ -368,14 +371,135 @@ public abstract class BasicCard : MonoBehaviour, IPointerClickHandler {
     {
     }
 
+    //This virtual method helps the AI know how to use a particular card in the action phase.
+    public virtual void AddToInitiative()
+    {
+        
+        /*
+         * Skill logic like this should go in the individual cards.
+         * 
+        //First check if the card can activate a skill.
+        if (CheckActionSkillConditions())
+        {
+            //Check if it should activate its skill.  This is personalized in each card.
+
+            //NEED TO UPDATE OWNER vs. CONTROLLER LOGIC
+
+            //Have the card add itself to the initiatve order.
+            //Owner.initiativeList.Add(this);
+            return;
+        }
+        */
+
+
+        //Second, check if the card can attack.
+        if (!GameManager.instance.FirstTurn && !Tapped && AttackTargets.Count > 0)
+        {
+            //Have the card add itself to the initiatve order.
+            DM.initiativeList.Add(this);
+            Debug.Log(this.ToString() + " wants to attack.");
+        }
+        //Third, since the card cannot attack right now, check if it should move.
+        else if (!Tapped && DecideToMove())
+        {
+            //Have the card add itself to the initiatve order.
+            DM.initiativeList.Add(this);
+            Debug.Log(this.ToString() + " wants to move.");
+        }
+        
+        //If we get here, the card didn't add itself to the initiative order.  Exit the method and proceed with the Action Phase. 
+    }
+
+    //This helper method lets a card decide if it wants to move while on the field.
+    public virtual bool DecideToMove()
+    {
+        //Check if we can attack in the current location.
+        if (AttackTargets.Count > 0)
+        {
+            return false;
+        }
+        //For some reason we cannot attack right now.
+        else 
+        {
+            //Check if this card actually has an attack range.
+            for (int i = 0; i < BaseRangeArray.Length; i++)
+            {
+                //If it does have an attack range, try moving to allow it to attack next turn.
+                //NOTE: There is room for nuance here.
+                if (BaseRangeArray[i])
+                {
+                    return true;
+                }
+            }
+
+            //If the card doesn't have an attack range, ensure it's in the back row.
+            if (Owner.BackLineCards.Contains(this))
+                return false;
+            else
+                return true;
+        }
+    }
+
+    //This virtual method allows the card to choose its actions in the action phase.
+    public virtual void Act()
+    {
+        /*
+         * Skill logic like this should go in the individual cards.
+         * 
+        //First check if the card should activate a skill.  This is personalized in each card.
+        if (ShouldActiveSkill())
+        {
+            //Activate the skill.  
+
+            
+        }
+        */
+
+        //Second, check if the card can attack.  If so, then have it do so.
+        List<BasicCard> attackTargets = AttackTargets;
+
+        if (!GameManager.instance.FirstTurn && !Tapped && attackTargets.Count > 0)
+        {
+            //Consider if this card can and should try for a critical hit.
+            /*
+            
+            //Check if there are cards in the hand allowing for a critical hit. 
+            if (Owner.Hand.Exists(x => x.CompareNames(this)))
+            {
+                //check the cards to confirm if any are good fodder for a crit (lower deploy cost)
+                //Check the enemies to confirm if there is a target within 20 attack of double the unit's base attack
+                //Choose a target using the same kind of choose attack logic.
+                //Do the other checks to confirm if we want to critical (check if this is MC and defender is MC).
+                //set a bool on the card or DM to say we want to try to crit
+            }
+            */
+
+            //Have the DecisionMaker choose an attack target. 
+            DM.ChooseAttackTarget(this, CurrentAttackValue, attackTargets);
+        }
+        //Presumably, the only other action a card can do is move itself.  Let's move now.
+        else
+        {
+            Tap();
+            Owner.MoveCard(this);
+        }
+    }
+    
+
     //This virtual method forms the base for the trigger skill implementation and is referenced in the TriggerEventHandler.
     public virtual bool CheckTriggerSkillCondition(BasicCard triggeringCard)
     {
         return false;
     }
 
-    //This virtual method forms the base for the trigger skill implementation and is references in the TriggerEventHandler.
-    public virtual void ActivateTriggerSkill(BasicCard triggeringCard)
+    //This virtual method forms the base for the trigger skill implementation and is referenced by the Decision Maker.
+    public virtual void ResolveTriggerSkillLP(BasicCard triggeringCard)
+    {
+
+    }
+
+    //This virtual method forms the base for the trigger skill implementation and is referenced by the Decision Maker.
+    public virtual void ResolveTriggerSkillAI(BasicCard triggeringCard)
     {
 
     }
@@ -476,7 +600,7 @@ public abstract class BasicCard : MonoBehaviour, IPointerClickHandler {
                 && (!GameManager.instance.FirstTurn || GameManager.instance.playtestMode) && AttackTargets.Count > 0)
             {
                 menuDetails.canAttack = true;
-                menuDetails.attackAction = () => { Debug.Log("Attack!"); GameManager.instance.AimAttack(this); };
+                menuDetails.attackAction = () => { Debug.Log("Attack!"); DM.ChooseAttackTarget(this); };
             }
             else
             {

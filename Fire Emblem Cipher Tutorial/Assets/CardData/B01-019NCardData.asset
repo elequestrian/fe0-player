@@ -20,6 +20,7 @@ MonoBehaviour:
   - Fighter's Expertise [ALWAYS] During your turn, this unit gains +20 attack.
   - '[ATK] Attack Emblem [SUPP] Until the end of this combat, your attacking unit
     gains +20 attack.'
+  skillTypes: 010000000000000000000000000000
   charName: Bord
   classTitle: Fighter
   deploymentCost: 1

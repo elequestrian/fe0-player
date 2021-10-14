@@ -2,8 +2,12 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+//The LayoutManager class is responsible for moving cards around the playing field as instructed by the CardManager.  It handles when
+//a card needs to end up in a CardStack object to be in the play field or if it can just exist on its own in the hand or deck.
 public class LayoutManager : MonoBehaviour {
 
+    private bool pauseForMovement = false;
+    private AudioSource source;
     //public static LayoutManager instance = null;
 
     public Transform deckLocation;
@@ -17,6 +21,10 @@ public class LayoutManager : MonoBehaviour {
 
     public GameObject MCMarker;
     public SimpleObjectPool cardStackObjectPool;
+
+    public AudioClip slide;
+    public AudioClip flip;
+    
 
     /*
      * I'm removing this static instance to make the Layout Manager local.
@@ -38,9 +46,14 @@ public class LayoutManager : MonoBehaviour {
     }
     */
     
+    //Sets up the audio for sound effects.
+    private void Start()
+    {
+        source = GetComponent(typeof(AudioSource)) as AudioSource;
+    }
 
-    //puts a card in the deck zone on the field
-    public void PlaceInDeck (BasicCard card)
+    //puts a card in the deck zone on the field at the beginning of the game.  No animations or sound.
+    public void SetUpDeck(BasicCard card)
     {
         //cast the transform as a RectTransform to access more sophisticated methods.
         //Only necessary when there isn't an active Layout Group.
@@ -65,50 +78,93 @@ public class LayoutManager : MonoBehaviour {
         }
     }
 
-    //puts a card in the retreat area on the field
-    public void PlaceInRetreat(BasicCard card)
+    //puts a card in the deck zone on the field
+    public void PlaceInDeck (BasicCard card)
     {
+        /*
+         * 
         //cast the transform as a RectTransform to access more sophisticated methods.
-        //Only necessary when there isn't an active Layout Group
+        //Only necessary when there isn't an active Layout Group.
+        //NOTE that the Layout groups also change the pivots of their children, but setting deckLocation to have a width and height of 0 seems to have solved that problem.
+        //If in doubt, I can change the pivot in this calculation too.  Or just make these locations their own layout group...
         RectTransform cardTransform = card.gameObject.transform as RectTransform;
         cardTransform.SetParent(null, false);
         //places the card on the field in the correct location.
-        cardTransform.SetParent(retreatLocation, false);
-        //sets the card's transform as the last in a local list so as to be rendered on top... actually has no effect.
-        //cardTransform.SetAsLastSibling();
+        cardTransform.SetParent(deckLocation, false);
         cardTransform.anchoredPosition = Vector2.zero;
-        //Debug.Log(card.ToString() + " placed in the Retreat Area at " + cardTransform.position.ToString());
+        //Debug.Log(card.ToString() + " placed in the Deck Area at " + cardTransform.position.ToString());
+        */
 
-        //ensures that the card remains face up.
-        if (!card.FaceUp)
+        StartCoroutine(MoveCardToDestination(card, deckLocation));
+
+        //ensures that the card remains face down.
+        if (card.FaceUp)
         {
-            card.FlipFaceUp();
+            card.FlipFaceDown();
         }
         //ensures that the card remains untapped.
         if (card.Tapped)
         {
             card.Untap();
         }
-
-        
     }
 
-    //puts a card in the support area on the field
-    public void PlaceInSupport(BasicCard card)
+    //puts a card in the retreat area on the field
+    public void PlaceInRetreat(BasicCard card)
     {
-        //cast the transform as a RectTransform to access more sophisticated methods.
-        //Only necessary when there isn't an active Layout Group
-        RectTransform cardTransform = card.gameObject.transform as RectTransform;
-        cardTransform.SetParent(null, false);
-        //places the card on the field in the correct location.
-        cardTransform.SetParent(supportLocation, false);
-        cardTransform.anchoredPosition = Vector2.zero;
-        //Debug.Log(card.ToString() + " placed in the Support Area at " + cardTransform.position.ToString());
+
+        /*old code
+       //cast the transform as a RectTransform to access more sophisticated methods.
+       //Only necessary when there isn't an active Layout Group
+       RectTransform cardTransform = card.gameObject.transform as RectTransform;
+       cardTransform.SetParent(null, false);
+       //places the card on the field in the correct location.
+       cardTransform.SetParent(retreatLocation, false);
+       //sets the card's transform as the last in a local list so as to be rendered on top... actually has no effect.
+       //cardTransform.SetAsLastSibling();
+       cardTransform.anchoredPosition = Vector2.zero;
+       //Debug.Log(card.ToString() + " placed in the Retreat Area at " + cardTransform.position.ToString());
+
+        */
+
+        StartCoroutine(MoveCardToDestination(card, retreatLocation));
+
+        //ensures that the card remains face up.
+        if (!card.FaceUp)
+       {
+           card.FlipFaceUp();
+       }
+       //ensures that the card remains untapped.
+       if (card.Tapped)
+       {
+           card.Untap();
+       }
+
+   }
+
+   //puts a card in the support area on the field
+   public void PlaceInSupport(BasicCard card)
+   {
+
+       /*old code
+
+       //cast the transform as a RectTransform to access more sophisticated methods.
+       //Only necessary when there isn't an active Layout Group
+       RectTransform cardTransform = card.gameObject.transform as RectTransform;
+       cardTransform.SetParent(null, false);
+       //places the card on the field in the correct location.
+       cardTransform.SetParent(supportLocation, false);
+       cardTransform.anchoredPosition = Vector2.zero;
+       //Debug.Log(card.ToString() + " placed in the Support Area at " + cardTransform.position.ToString());
+       */
+
+        StartCoroutine(MoveCardToDestination(card, supportLocation));
 
         //ensures that the card lands face up.
         if (!card.FaceUp)
         {
             card.FlipFaceUp();
+            source.PlayOneShot(flip, 0.5f);
         }
         //ensures that the card remains untapped.
         if (card.Tapped)
@@ -266,7 +322,7 @@ public class LayoutManager : MonoBehaviour {
         }
 
         //ensures cards that are drawn by the opponent stay hidden.
-        GameManager.instance.ShowHand(GameManager.instance.turnPlayer);
+        GameManager.instance.ShowHand(GameManager.instance.turnAgent);
     }
 
     //This method moves the new MC to the proper location and puts the MCMarker behind it.
@@ -283,4 +339,64 @@ public class LayoutManager : MonoBehaviour {
 
         return MCStack;
     }
+
+    //This coroutine animates the card's move from it's current position to the destination.
+    private IEnumerator MoveCardToDestination(BasicCard card, Transform destination)
+    {
+        //wait to move until the last called coroutine finishes.
+        while (pauseForMovement)
+        {
+            yield return null;
+        }
+                
+        //prevents other cards from moving for a time
+        pauseForMovement = true;
+        //Debug.Log("Pausing");
+
+        //play the sound effect for the move
+        source.PlayOneShot(slide, 0.5f);
+
+        //cast the transform as a RectTransform to access more sophisticated methods.
+        //Only necessary when there isn't an active Layout Group
+        RectTransform cardTransform = card.gameObject.transform as RectTransform;
+        //cardTransform.SetParent(null, true);
+        cardTransform.SetParent(destination, true);
+        Vector3 startPosition = cardTransform.anchoredPosition;
+
+        //calculate the interval used to move the game object.
+        float elapsedTime = 0f;
+        float animationTime = 0.1f;
+
+        //int interval = 1000;
+        //float thingy = time / distance;
+        //float distance = Vector3.magnitude(destination - card.transform.position);
+
+        while (elapsedTime < animationTime)
+        {
+            cardTransform.anchoredPosition = Vector3.Lerp(startPosition, Vector3.zero, elapsedTime/animationTime);
+            //Debug.Log(elapsedTime);
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        /*
+        for (int i = 0; i < interval; i++)
+        {
+            float t = (float)i / Time.deltaTime;
+            cardTransform.anchoredPosition = Vector2.Lerp(startPosition, Vector2.zero, t);
+            //Debug.Log("Moving in the Support Area " + i + "\nAnchored position: " + cardTransform.anchoredPosition + "\nLerp: " + Vector2.Lerp(startPosition, Vector2.zero, t) + "\ninterval: " + t);
+            yield return new WaitForSeconds(time/interval);
+        }
+        */
+
+        //places the card on the field in the correct location.
+        
+        cardTransform.anchoredPosition = Vector3.zero;
+        //Debug.Log(card.ToString() + " placed in the Support Area at " + cardTransform.position.ToString());
+
+        //allows other cards to move again
+        pauseForMovement = false;
+        //Debug.Log("End Pause");
+    }
+
 }

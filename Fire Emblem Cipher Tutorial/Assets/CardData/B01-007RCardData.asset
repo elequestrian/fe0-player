@@ -22,6 +22,7 @@ MonoBehaviour:
   - 'Red-Green Twin Strike [TRIGGER] [Tap allied "Abel"] When this unit attacks, you
     may pay the cost and if you do: Until the end of this combat, this unit gains
     +40 attack.'
+  skillTypes: 000000000000000000000000000000
   charName: Cain
   classTitle: Paladin
   deploymentCost: 3

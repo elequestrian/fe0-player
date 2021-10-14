@@ -31,6 +31,9 @@ public class B01N006 : BasicCard
     */
 
     private BasicCard princessCharismaTarget;
+    private List<BasicCard> tapTargets = new List<BasicCard>();
+    private List<BasicCard> skillTargets = new List<BasicCard>();
+    private bool shouldActivateSkill = false;
 
     // NOTE: Because inheriting classes don't call their parents' Start method, setup like references to the animator need to occur in a separate method.
     // (I suppose this might be able to be called in a constructor, but I think that plays with the Unity architecture more than I would like.  XD)
@@ -38,6 +41,85 @@ public class B01N006 : BasicCard
     void Awake()
     {
         SetUp();
+    }
+
+    //Princess's Charisma [ACT] [TAP, Tap 1 other ally] Choose 1 other ally. Until the end of the turn, that unit gains +10 attack.
+    //This method helps the card determine if it should add itself to the intiative order to use its skill.
+    public override void AddToInitiative()
+    {
+        //First, we need to determine if we can and should use this card's Action skill.
+        //Check if it's possible and wise to use this card's action skill.  Caeda must be untapped, should have no attack targets,
+        //and there's no reason to raise attack on the first turn.
+        //Possibe Expansion: If Caeda does have attack targets, but no good ones (everything is very strong and on crits), then 
+        //this skill may still be worth it.
+        if (!GameManager.instance.FirstTurn && !Tapped && AttackTargets.Count == 0)
+        {
+            //Confirm there are enough other untapped allies on the field to proceed.  We need another tap target and a boost target.
+            List<BasicCard> otherAllies = OtherAllies;
+
+            if (otherAllies.Count >= 2)
+            {
+                //Reset lists for the following checks.
+                tapTargets.Clear();
+                skillTargets.Clear();
+
+                for (int i = 0; i < otherAllies.Count; i++)
+                {
+                    //Check each other untapped ally and sort into two categories.
+                    if (!otherAllies[i].Tapped)
+                    {
+                        //Check if this ally is a good target to tap (no Attack targets).
+                        if (otherAllies[i].AttackTargets.Count == 0)
+                        {
+                            tapTargets.Add(otherAllies[i]);
+                        }
+                        //The ally has attack targets and so is a target for the effect of the skill.
+                        else
+                        {
+                            skillTargets.Add(otherAllies[i]);
+                        }
+                    }
+                }
+
+                //Check the two lists to confirm we have an entry on each.
+                if (tapTargets.Count > 0 && skillTargets.Count > 0)
+                {
+                    //Add to the beginning of the initiative list to ensure that the extra attack is given before any attacks.
+                    DM.initiativeList.Insert(0, this);
+                    shouldActivateSkill = true;
+                    Debug.Log(this.ToString() + " wants to buff.");
+                    return;
+                }
+            }
+        }
+
+        //Check if this card should attack or move if we don't activate its skill.
+        base.AddToInitiative();
+    }
+
+    //Princess's Charisma [ACT] [TAP, Tap 1 other ally] Choose 1 other ally. Until the end of the turn, that unit gains +10 attack.
+    //Have the card AI use Princess Charisma if that was the desired action.
+    public override void Act()
+    {
+        //Confirm if we're using our skill.
+        if (shouldActivateSkill)
+        {
+            shouldActivateSkill = false;
+            
+            //tap this card and one of the other tap targets at random.
+            Tap();
+            tapTargets[Random.Range(0, tapTargets.Count)].Tap();
+
+            //Randomly choose one of the other cards for the target of Princess Charisma.
+            List<BasicCard> target = new List<BasicCard>(1);
+            target.Add(skillTargets[Random.Range(0, skillTargets.Count)]);
+            PrincessCharisma(target);
+        }
+        //We need to use the normal action logic.
+        else
+        {
+            base.Act();
+        }
     }
 
     //Princess's Charisma [ACT] [TAP, Tap 1 other ally] Choose 1 other ally. Until the end of the turn, that unit gains +10 attack.
@@ -89,7 +171,7 @@ public class B01N006 : BasicCard
         {
             cardsToDisplay = tappableCards,
             numberOfCardsToPick = 1,
-            locationText = Owner.playerName + "'s Field",
+            locationText = DM.PlayerName + "'s Field",
             instructionText = "Please choose one unit to tap to activate " + CharName + "'s Princess's Charisma.\n\n" +
             "Princess's Charisma [ACT] [TAP, Tap 1 other ally] Choose 1 other ally. Until the end of the turn, that unit gains +10 attack.",
             mayChooseLess = true,
@@ -124,7 +206,7 @@ public class B01N006 : BasicCard
             {
                 cardsToDisplay = OtherAllies,
                 numberOfCardsToPick = 1,
-                locationText = Owner.playerName + "'s Field",
+                locationText = DM.PlayerName + "'s Field",
                 instructionText = "Please choose one other ally to gain +10 attack from Caeda's Princess's Charisma.",
                 mayChooseLess = false,
                 effectToActivate = eventToCall
@@ -145,7 +227,7 @@ public class B01N006 : BasicCard
         princessCharismaTarget.attackModifier += 10;
 
         //display the boost
-        CardReader.instance.UpdateGameLog(Owner.playerName + " activates Caeda's Princess's Charisma skill to give " 
+        CardReader.instance.UpdateGameLog(DM.PlayerName + " activates Caeda's Princess's Charisma skill to give " 
             + princessCharismaTarget.CharName + " +10 attack!");
 
         princessCharismaTarget.AddToSkillChangeTracker("Caeda's Princess's Charisma skill providing +10 attack.");

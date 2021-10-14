@@ -155,7 +155,7 @@ public class CardStack : MonoBehaviour {
         for (int i = 0; i < size; i++)
         {
             cardsInPile.Peek().gameObject.SetActive(true);
-            cardsInPile.Peek().gameObject.transform.SetParent(null, false);
+            cardsInPile.Peek().gameObject.transform.SetParent(null, true);
             stackedCards.Add(cardsInPile.Pop());
             //Debug.Log("Gone through the popping loop.");
         }

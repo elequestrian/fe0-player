@@ -21,6 +21,7 @@ MonoBehaviour:
     than this unit and your Main Character, this unit gains +20 attack.
   - '[ATK] Attack Emblem [SUPP] Until the end of this combat, your attacking unit
     gains +20 attack.'
+  skillTypes: 000000000000000000000000000000
   charName: Navarre
   classTitle: Myrmidon
   deploymentCost: 1

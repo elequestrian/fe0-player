@@ -47,6 +47,72 @@ public class B01N014 : BasicCard
     }
 
     //Steel Bow [ACT] [ONCE PER TURN] [FLIP 1] Until the end of the turn, this unit gains +10 attack.
+    //Anti-Fliers [ALWAYS] If this unit is attacking a <Flier>, this unit gains +30 attack.
+    //Have the card AI decide who to attack based on Anti-Fliers.
+    public override void Act()
+    {
+        //Confirm if Gordin can/should use either of his abilities to attack.
+        List<BasicCard> targets = AttackTargets;
+
+        if (!GameManager.instance.FirstTurn && !Tapped && targets.Count > 0)
+        {
+            //Decide whether Gordin should use his Steel Bow ability to raise his attack.
+            //First, check if it's even possible to use the skills
+            //and if we have enough active bonds based on this deck's strategy to spare one.
+            if (CheckActionSkillConditions() && DM.ShouldFlipBonds(this, 1))
+            {
+                //Confirm if there is a good target to make use of the extra attack.
+                List<BasicCard> steelBowTargets = new List<BasicCard>(AttackTargets.Count);
+
+                foreach (BasicCard enemy in targets)
+                {
+                    //Is the enemy a high attack flier, or the MC, or a higher cost unit?
+                    //If so, and the extra attack makes us more likely to kill, then add to the target list.
+                    if ((enemy.UnitTypeArray[(int)CipherData.TypesEnum.Flier] && enemy.CurrentAttackValue == CurrentAttackValue + 40)
+                        || (enemy.CurrentAttackValue == CurrentAttackValue + 10
+                        && (enemy == Owner.Opponent.MCCard || enemy.DeploymentCost > DeploymentCost)))
+                    {
+                        steelBowTargets.Add(enemy);
+                    }
+                }
+
+                //Confirm if we have any good targets for the Steel Bow skill.
+                if (steelBowTargets.Count > 0)
+                {
+                    //Activate Steel Bow and target the enemies.
+                    PayActionSkillCost();
+
+                    //Prioritize attacking the fliers.
+                    if (steelBowTargets.Exists(enemy => enemy.UnitTypeArray[(int)CipherData.TypesEnum.Flier]))
+                        DM.ChooseAttackTarget(this, CurrentAttackValue + 40, steelBowTargets.FindAll(enemy => enemy.UnitTypeArray[(int)CipherData.TypesEnum.Flier]));
+                    else
+                        DM.ChooseAttackTarget(this, CurrentAttackValue + 10, steelBowTargets);
+
+                    return;
+                }
+
+  
+            }
+
+            //Aim attack based on the abilty to easily take down flier enemies.
+            //Check that Gordin has Flier targets with no more than +10 attack compared to himself with the +30 buff.
+            List<BasicCard> flierTargets = targets.FindAll(enemy => enemy.UnitTypeArray[(int)CipherData.TypesEnum.Flier]
+            && enemy.CurrentAttackValue <= CurrentAttackValue + 40);
+
+            if (flierTargets.Count > 0)
+            {
+                //NOTE: We should also confirm if Gordin is likely to crit.
+
+                DM.ChooseAttackTarget(this, CurrentAttackValue + 30, flierTargets);
+                return;
+            }
+        }
+        
+        //resume normal turn logic if we don't decide to attack a flier or active the Steel Bow.
+        base.Act();
+    }
+
+    //Steel Bow [ACT] [ONCE PER TURN] [FLIP 1] Until the end of the turn, this unit gains +10 attack.
     protected override bool CheckActionSkillConditions()
     {
         //Verify that Steel Bow is usable.
@@ -64,11 +130,11 @@ public class B01N014 : BasicCard
     //This is where the bond cards to be flipped will be chosen and the effect activated.
     protected override void PayActionSkillCost()
     {
-        //Choose and flip the bonds to activate this effect.
-        Owner.ChooseBondsToFlip(1);
-
         //adds a callback to activate the skill once the bonds have been flipped.
         Owner.FinishBondFlipEvent.AddListener(ActivateSteelBow);
+
+        //Choose and flip the bonds to activate this effect.
+        DM.ChooseBondsToFlip(this, 1, CardSkills[0]);
     }
 
     //Steel Bow [ACT] [ONCE PER TURN] [FLIP 1] Until the end of the turn, this unit gains +10 attack.
@@ -78,7 +144,7 @@ public class B01N014 : BasicCard
         Owner.FinishBondFlipEvent.RemoveListener(ActivateSteelBow);
 
         //updates the game log
-        CardReader.instance.UpdateGameLog(Owner.playerName + " activates Gordin's Steel Bow skill! " +
+        CardReader.instance.UpdateGameLog(DM.PlayerName + " activates Gordin's Steel Bow skill! " +
             "Gordin's attack increases by +10 until the end of the turn.");
 
         //increases attack

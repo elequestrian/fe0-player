@@ -20,6 +20,7 @@ MonoBehaviour:
   - Brand of the Exalt [ALWAYS] For each Class Changed ally, this unit gains +10 attack.
   - '[ATK] Hero Emblem [SUPP] Until the end of this combat, the number of Orbs that
     your <Blue> attacking unit''s attack will destroy becomes 2.'
+  skillTypes: 000000000000000000000000000000
   charName: Chrom
   classTitle: Lord
   deploymentCost: 1

@@ -22,6 +22,7 @@ MonoBehaviour:
     cannot be used unless this unit is in the Front Line.
   - '[ATK] Hero Emblem [SUPP] Until the end of this combat, the number of Orbs that
     your <Red> attacking unit''s attack will destroy becomes 2.'
+  skillTypes: 000000000000000000000000000000
   charName: Marth
   classTitle: Lord
   deploymentCost: 1

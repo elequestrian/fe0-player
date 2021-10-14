@@ -18,6 +18,7 @@ MonoBehaviour:
   cardIllustrator: Azusa
   cardSkills:
   - Battlefield Mentor [SPECIAL] This card is unable to be played in the Bond Area.
+  skillTypes: 000000000000000000000000000000
   charName: Jagen
   classTitle: Paladin
   deploymentCost: 3

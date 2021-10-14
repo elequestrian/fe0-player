@@ -16,6 +16,7 @@ public class CardData : ScriptableObject {
     public string cardIllustrator;
     [Multiline]
     public string[] cardSkills;
+    public bool[] skillTypes = new bool[CipherData.NumSkillTypes];
 
     public string charName;
     public string classTitle;
@@ -29,7 +30,7 @@ public class CardData : ScriptableObject {
     public int baseAttack;
     public int baseSupport;
     public bool[] baseRange = new bool [CipherData.NumRanges];               
-
+    
    
 }
 
